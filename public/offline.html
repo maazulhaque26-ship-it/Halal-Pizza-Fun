@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-viewport, initial-scale=1.0">
+  <title>HPF Partner | Offline</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .container {
+      padding: 2rem;
+      max-width: 400px;
+    }
+    .icon {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 1.5rem;
+      background-color: #1e293b;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+    .icon svg {
+      width: 40px;
+      height: 40px;
+      fill: #e2e8f0;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+    .btn {
+      background: linear-gradient(135deg, #eab308 0%, #d97706 100%);
+      color: #0f172a;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M22.88 21.46L2.54 1.12A.996.996 0 1 0 1.12 2.54l3.43 3.43C2.35 8.16 1 10.42 1 13c0 4.97 4.03 9 9 9 2.12 0 4.07-.74 5.62-1.98l4.84 4.84a.996.996 0 1 0 1.42-1.4zM10 20c-3.86 0-7-3.14-7-7 0-2.12.96-4.02 2.47-5.31l9.84 9.84C14.02 19.04 12.12 20 10 20zM19 13c0-1.04-.23-2.03-.64-2.92l1.49-1.49C20.57 9.88 21 11.39 21 13c0 2.12-.74 4.07-1.98 5.62l-1.45-1.45C18.47 15.93 19 14.52 19 13zM15.42 8.35l1.44-1.44C15.34 5.72 12.82 5 10 5c-.71 0-1.4.09-2.07.25l1.49 1.49C9.62 6.72 9.81 6.7 10 6.7c2.33 0 4.41.87 5.42 1.65z"/>
+      </svg>
+    </div>
+    <h1>You are offline</h1>
+    <p>Your branch dashboard requires an active internet connection to receive real-time orders. Please check your network connection.</p>
+    <button class="btn" onclick="window.location.reload()">Try Reconnecting</button>
+  </div>
+</body>
+</html>

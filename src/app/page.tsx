@@ -1,65 +1,96 @@
-import Image from "next/image";
+import { getSettings } from "@/lib/services/SettingsService";
+import { connectDB } from "@/lib/db/mongoose";
+import { Category } from "@/lib/db/models/Category";
+import { Product } from "@/lib/db/models/Product";
+import Navbar from "@/components/Navbar";
+import Hero from "@/components/Hero";
+import CategorySection from "@/components/CategorySection";
+import BranchSection from "@/components/BranchSection";
+import RestaurantGrid from "@/components/RestaurantGrid";
+import ReviewSection from "@/components/ReviewSection";
+import Footer from "@/components/Footer";
 
-export default function Home() {
+/**
+ * Homepage — Server Component.
+ * Fetches settings + content from DB and passes as props to client components.
+ * Zero hardcoded content.
+ */
+export default async function Home() {
+  let settings = null;
+  let categories: any[] = [];
+  let featuredProducts: any[] = [];
+  let branches: any[] = [];
+
+  try {
+    await connectDB();
+    const [settingsData, categoriesData, featuredProductsData, branchesData] = await Promise.all([
+      getSettings(),
+      Category.find({ isActive: true }).sort({ order: 1 }).lean(),
+      Product.find({ isAvailable: true })
+        .limit(8)
+        .populate("categoryId", "name")
+        .lean(),
+      import("@/lib/db/models/Branch").then(m => m.Branch.find({ isActive: true }).lean()),
+    ]);
+
+    settings = settingsData;
+    // Fix: Convert MongoDB objects (like ObjectId) to plain JSON before passing to Client Components
+    categories = JSON.parse(JSON.stringify(categoriesData));
+    featuredProducts = JSON.parse(JSON.stringify(featuredProductsData));
+    branches = JSON.parse(JSON.stringify(branchesData));
+  } catch (err) {
+    console.error("Homepage data fetch failed:", err);
+  }
+
+  const hp = settings?.homepage;
+  const hs = (settings as any)?.hero;
+  const ll = (settings as any)?.legalLinks;
+
+  const heroStats = hs ? [
+    { value: hs.stat1Value || "4.9★", label: hs.stat1Label || "Rating" },
+    { value: hs.stat2Value || "50K+", label: hs.stat2Label || "Orders Served" },
+    { value: hs.stat3Value || "10+",  label: hs.stat3Label || "Years" },
+  ] : undefined;
+
+  const heroTrendingTags: string[] | undefined =
+    Array.isArray(hs?.trendingTags) && hs.trendingTags.length > 0
+      ? hs.trendingTags
+      : undefined;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="min-h-screen">
+      <Navbar
+        siteName={settings?.siteName || "Halal Pizza Fun"}
+        logoUrl={settings?.logoUrl || undefined}
+        mobileLogoUrl={settings?.mobileLogoUrl || undefined}
+        darkModeLogoUrl={settings?.darkModeLogoUrl || undefined}
+      />
+      <Hero
+        title={hp?.heroTitle}
+        subtitle={hp?.heroSubtitle}
+        backgroundUrl={hp?.heroBackgroundUrl}
+        stats={heroStats}
+        trendingTags={heroTrendingTags}
+      />
+      {hp?.showFeaturedCategories !== false && (
+        <CategorySection categories={categories} />
+      )}
+      <BranchSection branches={branches} />
+      {hp?.showRestaurantGrid !== false && (
+        <RestaurantGrid products={featuredProducts} />
+      )}
+      <ReviewSection />
+      <Footer
+        siteName={settings?.siteName}
+        contactEmail={settings?.contactEmail}
+        contactPhone={settings?.contactPhone}
+        contactHours={(settings as any)?.contactHours}
+        socialLinks={settings?.socialLinks}
+        footerLogoUrl={settings?.footerLogoUrl}
+        privacyPolicyUrl={ll?.privacyPolicyUrl}
+        termsOfServiceUrl={ll?.termsOfServiceUrl}
+        cookiePolicyUrl={ll?.cookiePolicyUrl}
+      />
+    </main>
   );
 }

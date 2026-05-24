@@ -39,3 +39,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local uploads (use Cloudinary in production)
+/public/uploads/
+
+# debug / temp artefacts
+dev.log
+curl_body.html
+curl_headers.txt
+curl_out.html
+replace_hpf.js
+
+# internal docs (not part of the public repo)
+CRITICAL_FIXES.md
+DEPLOYMENT_CHECKLIST.md
+FEATURES.md
+HYPERLOCAL_SYSTEM.md
+IMPLEMENTATION_SUMMARY.md
+QA_AUDIT_REPORT.md
+QA_TESTING_CHECKLIST.md
+QUICK_START.md
