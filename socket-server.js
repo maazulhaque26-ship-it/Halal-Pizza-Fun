@@ -6,18 +6,31 @@ const jwt = require("jsonwebtoken");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { decode } = require("next-auth/jwt");
-require("dotenv").config({ path: ".env.local" });
+
+// In production, env vars are injected by Render. Only load .env.local locally.
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config({ path: ".env.local" });
+}
 
 const app = express();
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+const allowedOrigins = process.env.NODE_ENV === "production"
+  ? [FRONTEND_URL]
+  : (origin, callback) => callback(null, true); // allow all in dev
 
 // Secure headers with Helmet (configured to allow Socket.io connections)
 app.use(helmet());
 
-app.use(cors({
-  origin: (origin, callback) => callback(null, true),
-  credentials: true
-}));
+app.use(cors(
+  process.env.NODE_ENV === "production"
+    ? { origin: FRONTEND_URL, credentials: true }
+    : { origin: (origin, callback) => callback(null, true), credentials: true }
+));
 app.use(express.json());
+
+// Health check for Render uptime monitoring
+app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 // Set up rate limiter for REST API endpoints
 const apiLimiter = rateLimit({
@@ -33,7 +46,9 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: (origin, callback) => callback(null, true),
+    origin: process.env.NODE_ENV === "production"
+      ? FRONTEND_URL
+      : (origin, callback) => callback(null, true),
     methods: ["GET", "POST"],
     credentials: true,
   },
