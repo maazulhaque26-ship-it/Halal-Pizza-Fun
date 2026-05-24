@@ -3,17 +3,18 @@ services:
     name: hpf-socket-server
     runtime: node
     plan: free
+    region: singapore
     buildCommand: npm install --omit=dev
     startCommand: node socket-server.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: FRONTEND_URL
+        value: https://food-delivery-five-virid.vercel.app
       - key: NEXTAUTH_SECRET
         sync: false
       - key: JWT_SECRET
         sync: false
       - key: SOCKET_API_KEY
         generateValue: true
-      - key: FRONTEND_URL
-        sync: false
