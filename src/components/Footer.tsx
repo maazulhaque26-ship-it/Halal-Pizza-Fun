@@ -186,7 +186,7 @@ export default function Footer({
             <div className="flex gap-3">
               {activeSocials.length > 0
                 ? activeSocials.map(([platform, url]) => {
-                    const Icon = SOCIAL_ICONS[platform] || Facebook;
+                    const Icon = SOCIAL_ICONS[platform] || Globe;
                     return (
                       <a
                         key={platform}
