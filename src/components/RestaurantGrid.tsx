@@ -263,9 +263,8 @@ function ProductCard({
                         initial={{ opacity: 0, y: -8, scaleY: 0.9 }}
                         animate={{ opacity: 1, y: 0, scaleY: 1 }}
                         exit={{ opacity: 0, y: -8, scaleY: 0.9 }}
-                        style={{ transformOrigin: "top" }}
+                        style={{ transformOrigin: "top", background: "rgba(13,24,41,0.98)", border: "1px solid rgba(212,175,55,0.15)" }}
                         className="absolute top-full left-0 right-0 mt-1.5 z-20 rounded-xl overflow-hidden shadow-2xl shadow-black/60"
-                        style={{ background: "rgba(13,24,41,0.98)", border: "1px solid rgba(212,175,55,0.15)" }}
                       >
                         {variants.map((v) => (
                           <button
