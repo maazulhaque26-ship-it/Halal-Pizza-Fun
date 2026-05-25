@@ -33,7 +33,11 @@ export async function GET() {
 }
 
 // One-time seed endpoint — creates admin if missing
-export async function POST() {
+export async function POST(request: Request) {
+  const key = request.headers.get("x-seed-key");
+  if (key !== "hpf-seed-2026") {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
   try {
     await connectDB();
     const db = (await import("mongoose")).default.connection.db!;
