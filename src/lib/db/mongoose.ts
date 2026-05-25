@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { env } from "@/config/env";
+import { runMigrations } from "@/lib/db/migrations/runner";
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -43,8 +44,9 @@ export const connectDB = async () => {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(env.MONGODB_URI, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(env.MONGODB_URI, opts).then(async (mongoose) => {
       console.log("🟢 Connected to MongoDB Database");
+      await runMigrations();
       return mongoose;
     });
   }

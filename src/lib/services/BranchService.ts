@@ -53,7 +53,7 @@ export class BranchService {
         continue;
       }
       
-      if (!this.isBranchOpen(branch.operatingHours)) {
+      if (!this.isBranchOpen(branch.operatingHours, branch.timezone)) {
         console.log(`  -> Rejected: Branch is currently closed`);
         continue;
       }
@@ -80,13 +80,17 @@ export class BranchService {
     return null;
   }
 
-  private static isBranchOpen(operatingHours?: { open?: string; close?: string }) {
+  private static isBranchOpen(
+    operatingHours?: { open?: string; close?: string },
+    timezone?: string
+  ) {
     if (!operatingHours?.open || !operatingHours?.close) return true;
 
-    // Use IST (Asia/Kolkata) since this is the region for the platform
+    const tz = timezone || "Asia/Kolkata";
     const now = new Date();
+
     const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: "Asia/Kolkata",
+      timeZone: tz,
       hour: "numeric",
       minute: "numeric",
       hour12: false,
@@ -94,17 +98,18 @@ export class BranchService {
     const parts = formatter.formatToParts(now);
     const hours = parseInt(parts.find((p) => p.type === "hour")?.value || "0", 10);
     const minutes = parseInt(parts.find((p) => p.type === "minute")?.value || "0", 10);
-    
+
     const currentMinutes = (hours === 24 ? 0 : hours) * 60 + minutes;
     const openMinutes = this.timeToMinutes(operatingHours.open);
     const closeMinutes = this.timeToMinutes(operatingHours.close);
 
     if (openMinutes === closeMinutes) return true;
+
+    // Handles overnight ranges (e.g. 22:00 → 02:00)
     if (openMinutes < closeMinutes) {
       return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
     }
-
-    return true; // Bypass for local dev so orders don't fail late at night
+    return currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
   }
 
   private static timeToMinutes(time: string) {

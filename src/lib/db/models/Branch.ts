@@ -25,12 +25,17 @@ export interface IBranch extends Document {
   activeOrders: number;
   deliveryCharge?: number;
   estimatedDeliveryTime?: string;
+  timezone: string; // IANA timezone, e.g. "Asia/Kolkata"
   seoMetadata?: {
     metaTitle?: string;
     metaDescription?: string;
     metaKeywords?: string;
   };
   isDeleted: boolean;
+  // Soft-archive fields (richer alternative to isDeleted)
+  isArchived: boolean;
+  archivedAt?: Date;
+  archivedBy?: mongoose.Types.ObjectId;
   notificationSettings: {
     email: boolean;
     push: boolean;
@@ -76,12 +81,16 @@ const BranchSchema = new Schema<IBranch>(
     activeOrders: { type: Number, default: 0 },
     deliveryCharge: { type: Number },
     estimatedDeliveryTime: { type: String, default: "30-45 mins" },
+    timezone: { type: String, default: "Asia/Kolkata" },
     seoMetadata: {
       metaTitle: { type: String },
       metaDescription: { type: String },
       metaKeywords: { type: String },
     },
     isDeleted: { type: Boolean, default: false, index: true },
+    isArchived: { type: Boolean, default: false, index: true },
+    archivedAt: { type: Date },
+    archivedBy: { type: Schema.Types.ObjectId, ref: "User" },
     notificationSettings: {
       email: { type: Boolean, default: true },
       push: { type: Boolean, default: true },

@@ -1,9 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-/**
- * Coupon model for discount codes.
- * Admin can create/disable coupons from the dashboard.
- */
 export interface ICoupon extends Document {
   code: string;
   discountType: "PERCENTAGE" | "FLAT";
@@ -11,6 +7,8 @@ export interface ICoupon extends Document {
   minOrderValue: number;
   maxUses: number;
   usedCount: number;
+  maxUsesPerUser: number; // 0 = unlimited per user
+  usageByUser: Map<string, number>; // userId → use count
   isActive: boolean;
   expiresAt: Date;
   createdAt: Date;
@@ -28,6 +26,8 @@ const CouponSchema = new Schema<ICoupon>(
     minOrderValue: { type: Number, default: 0 },
     maxUses: { type: Number, default: 100 },
     usedCount: { type: Number, default: 0 },
+    maxUsesPerUser: { type: Number, default: 1 },
+    usageByUser: { type: Map, of: Number, default: {} },
     isActive: { type: Boolean, default: true },
     expiresAt: { type: Date, required: true },
   },

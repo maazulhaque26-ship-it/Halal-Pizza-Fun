@@ -13,6 +13,7 @@ import { ProductVariant } from "@/lib/db/models/ProductVariant";
 import { connectDB } from "@/lib/db/mongoose";
 import { BranchService } from "@/lib/services/BranchService";
 import { getSettings } from "@/lib/services/SettingsService";
+import { IdempotencyKey } from "@/lib/db/models/IdempotencyKey";
 
 const itemSchema = z.object({
   productId: z.string().min(1),
@@ -76,6 +77,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
+    // ── Idempotency-Key header (required for COD; optional for online) ─────
+    const idempotencyKey = req.headers.get("Idempotency-Key")?.trim() || null;
+
     if (!hasRazorpayConfig()) {
       return NextResponse.json(
         {
@@ -92,6 +96,17 @@ export async function POST(req: Request) {
     }
 
     await connectDB();
+
+    // ── Idempotency check (early-return cached response for COD duplicates) ─
+    if (idempotencyKey) {
+      const existing = await IdempotencyKey.findOne({
+        key: idempotencyKey,
+        userId: session.user.id,
+      });
+      if (existing) {
+        return NextResponse.json(existing.response);
+      }
+    }
 
     // ── Load DB settings for authoritative fee config ──────────────────────
     const settings = await getSettings();
@@ -187,6 +202,17 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, message: "Coupon is invalid for this order." }, { status: 400 });
       }
 
+      // Per-user limit check
+      if (coupon.maxUsesPerUser > 0) {
+        const userUses = coupon.usageByUser?.get(session.user.id) ?? 0;
+        if (userUses >= coupon.maxUsesPerUser) {
+          return NextResponse.json(
+            { success: false, message: "You have already used this coupon the maximum number of times." },
+            { status: 400 }
+          );
+        }
+      }
+
       couponDiscount =
         coupon.discountType === "PERCENTAGE" ? (subTotal * coupon.discountValue) / 100 : coupon.discountValue;
     }
@@ -279,7 +305,15 @@ export async function POST(req: Request) {
       });
 
       if (normalizedCoupon) {
-        await Coupon.updateOne({ code: normalizedCoupon }, { $inc: { usedCount: 1 } });
+        await Coupon.updateOne(
+          { code: normalizedCoupon },
+          {
+            $inc: {
+              usedCount: 1,
+              [`usageByUser.${session.user.id}`]: 1,
+            },
+          }
+        );
       }
 
       // Notify Branch via Socket & PWA Push
@@ -293,7 +327,7 @@ export async function POST(req: Request) {
         order: orderObj,
       });
 
-      return NextResponse.json({
+      const codResponse = {
         success: true,
         order,
         assignedBranch: {
@@ -304,7 +338,25 @@ export async function POST(req: Request) {
         amount: total,
         deliveryFee,
         distanceKm: Number(distanceKm.toFixed(2)),
-      });
+      };
+
+      // Store idempotency key so duplicate submissions return cached response
+      if (idempotencyKey) {
+        await IdempotencyKey.findOneAndUpdate(
+          { key: idempotencyKey, userId: session.user.id },
+          {
+            $setOnInsert: {
+              key: idempotencyKey,
+              userId: session.user.id,
+              response: codResponse,
+              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            },
+          },
+          { upsert: true }
+        );
+      }
+
+      return NextResponse.json(codResponse);
     }
 
     // ── Online Payment Flow ────────────────────────────────────────────────

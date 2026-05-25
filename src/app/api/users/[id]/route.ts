@@ -61,12 +61,51 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     if (!id) return NextResponse.json({ success: false, message: "ID is required" }, { status: 400 });
 
     await connectDB();
-    const deletedUser = await User.findByIdAndDelete(id);
-    if (!deletedUser) return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          isArchived: true,
+          isActive: false,
+          archivedAt: new Date(),
+          archivedBy: session.user.id,
+        },
+      },
+      { new: true }
+    );
+    if (!user) return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
 
-    return NextResponse.json({ success: true, message: "User deleted successfully" });
+    return NextResponse.json({ success: true, message: "User archived successfully" });
   } catch (error: any) {
     console.error("DELETE /api/users/[id] error:", error);
+    return NextResponse.json({ success: false, message: error.message || "Server error" }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== ROLES.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+    if (!id) return NextResponse.json({ success: false, message: "ID is required" }, { status: 400 });
+
+    await connectDB();
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        $set: { isArchived: false, isActive: true },
+        $unset: { archivedAt: "", archivedBy: "" },
+      },
+      { new: true }
+    );
+    if (!user) return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
+
+    return NextResponse.json({ success: true, message: "User restored successfully" });
+  } catch (error: any) {
+    console.error("PUT /api/users/[id] error:", error);
     return NextResponse.json({ success: false, message: error.message || "Server error" }, { status: 500 });
   }
 }

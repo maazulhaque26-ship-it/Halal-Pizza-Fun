@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import mongoose from "mongoose";
 import { ORDER_STATUS } from "@/config/constants";
 import { env } from "@/config/env";
 import { authOptions } from "@/lib/auth/options";
@@ -223,39 +224,68 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Order total mismatch: recalculation failed" }, { status: 409 });
     }
 
-    // ── Order Creation ─────────────────────────────────────────────────────
-    const order = await Order.create({
-      orderId: `ORD-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`,
-      customerId: payment.userId,
-      branchId: nearestBranch?._id || snapshot.branchId,
-      items: snapshot.items,
-      subTotal: snapshot.subTotal,
-      tax: snapshot.tax,
-      deliveryFee: snapshot.deliveryFee,
-      total: snapshot.total,
-      deliveryAddress: snapshot.deliveryAddress,
-      status: ORDER_STATUS.PENDING,
-      paymentMethod: snapshot.paymentMethod,
-      paymentStatus: "PAID",
-      paymentId: razorpay_payment_id,
-      specialInstructions: snapshot.specialInstructions,
-      realtimeStatus: "RECEIVED",
-      orderTimeline: [{ status: "PENDING", timestamp: new Date(), note: "Payment verified online" }]
-    });
+    // ── Atomic: Order + Payment completion + Coupon in one transaction ─────
+    const dbSession = await mongoose.startSession();
+    dbSession.startTransaction();
 
-    // Complete the payment transaction
-    payment.orderId = order._id;
-    payment.status = "completed";
-    payment.transactionId = razorpay_payment_id;
-    payment.verifiedAt = new Date();
-    payment.paymentGatewayData = {
-      ...payment.paymentGatewayData,
-      verification: { razorpay_order_id, razorpay_payment_id },
-    };
-    await payment.save();
+    let order: any;
+    try {
+      const [createdOrder] = await Order.create(
+        [
+          {
+            orderId: `ORD-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`,
+            customerId: payment.userId,
+            branchId: nearestBranch?._id || snapshot.branchId,
+            items: snapshot.items,
+            subTotal: snapshot.subTotal,
+            tax: snapshot.tax,
+            deliveryFee: snapshot.deliveryFee,
+            total: snapshot.total,
+            deliveryAddress: snapshot.deliveryAddress,
+            status: ORDER_STATUS.PENDING,
+            paymentMethod: snapshot.paymentMethod,
+            paymentStatus: "PAID",
+            paymentId: razorpay_payment_id,
+            specialInstructions: snapshot.specialInstructions,
+            realtimeStatus: "RECEIVED",
+            orderTimeline: [{ status: "PENDING", timestamp: new Date(), note: "Payment verified online" }],
+          },
+        ],
+        { session: dbSession }
+      );
+      order = createdOrder;
 
-    if (snapshot.couponCode) {
-      await Coupon.updateOne({ code: snapshot.couponCode }, { $inc: { usedCount: 1 } });
+      payment.orderId = order._id;
+      payment.status = "completed";
+      payment.transactionId = razorpay_payment_id;
+      payment.verifiedAt = new Date();
+      payment.paymentGatewayData = {
+        ...payment.paymentGatewayData,
+        verification: { razorpay_order_id, razorpay_payment_id },
+      };
+      await payment.save({ session: dbSession });
+
+      if (snapshot.couponCode) {
+        await Coupon.updateOne(
+          { code: snapshot.couponCode },
+          {
+            $inc: {
+              usedCount: 1,
+              [`usageByUser.${payment.userId}`]: 1,
+            },
+          },
+          { session: dbSession }
+        );
+      }
+
+      await dbSession.commitTransaction();
+    } catch (txError) {
+      await dbSession.abortTransaction();
+      // Revert payment to pending so customer can retry
+      await Payment.updateOne({ _id: payment._id }, { $set: { status: "pending" } });
+      throw txError;
+    } finally {
+      await dbSession.endSession();
     }
 
     // ── Notify Branch via Socket + Web Push ─────────────────────────────────

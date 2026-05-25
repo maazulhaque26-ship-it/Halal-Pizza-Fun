@@ -31,6 +31,9 @@ export interface IUser extends Document {
     isDefault: boolean;
   }[];
   isActive: boolean;
+  isArchived: boolean;
+  archivedAt?: Date;
+  archivedBy?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -72,6 +75,9 @@ const UserSchema = new Schema<IUser>(
       },
     ],
     isActive: { type: Boolean, default: true },
+    isArchived: { type: Boolean, default: false, index: true },
+    archivedAt: { type: Date },
+    archivedBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );

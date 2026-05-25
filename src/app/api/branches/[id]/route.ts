@@ -74,11 +74,60 @@ export async function DELETE(
 
     const { id } = await params;
     await connectDB();
-    await Branch.findByIdAndDelete(id);
+    const branch = await Branch.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          isArchived: true,
+          isDeleted: true,
+          isActive: false,
+          isAcceptingOrders: false,
+          archivedAt: new Date(),
+          archivedBy: session.user.id,
+        },
+      },
+      { new: true }
+    );
 
-    return NextResponse.json({ success: true, message: "Branch deleted" });
+    if (!branch) {
+      return NextResponse.json({ success: false, message: "Branch not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: "Branch archived" });
   } catch (error) {
     console.error("DELETE /api/branches/[id] error:", error);
+    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== ROLES.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    await connectDB();
+    const branch = await Branch.findByIdAndUpdate(
+      id,
+      {
+        $set: { isArchived: false, isDeleted: false },
+        $unset: { archivedAt: "", archivedBy: "" },
+      },
+      { new: true }
+    );
+
+    if (!branch) {
+      return NextResponse.json({ success: false, message: "Branch not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: "Branch restored", data: branch });
+  } catch (error) {
+    console.error("PUT /api/branches/[id] error:", error);
     return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
   }
 }

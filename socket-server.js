@@ -3,6 +3,7 @@ const http = require("http");
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { decode } = require("next-auth/jwt");
@@ -412,7 +413,11 @@ const validateApiKey = (req, res, next) => {
     console.warn("WARNING: SOCKET_API_KEY is missing. Using insecure development key fallback.");
   }
   const keyToCompare = expectedApiKey || "dev_socket_api_key_123";
-  if (!apiKey || apiKey !== keyToCompare) {
+  const valid =
+    apiKey &&
+    apiKey.length === keyToCompare.length &&
+    crypto.timingSafeEqual(Buffer.from(apiKey), Buffer.from(keyToCompare));
+  if (!valid) {
     return res.status(401).json({ success: false, message: "Unauthorized: Invalid API Key" });
   }
   next();
