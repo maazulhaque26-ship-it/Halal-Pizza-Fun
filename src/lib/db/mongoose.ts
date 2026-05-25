@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { env } from "@/config/env";
-import { runMigrations } from "@/lib/db/migrations/runner";
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -46,6 +45,8 @@ export const connectDB = async () => {
 
     cached.promise = mongoose.connect(env.MONGODB_URI, opts).then(async (mongoose) => {
       console.log("🟢 Connected to MongoDB Database");
+      // Dynamic import avoids top-level circular-dep risk in Next.js serverless bundles
+      const { runMigrations } = await import("@/lib/db/migrations/runner");
       await runMigrations();
       return mongoose;
     });

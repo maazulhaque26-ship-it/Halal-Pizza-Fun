@@ -6,7 +6,6 @@ import { authOptions } from "@/lib/auth/options";
 import { ROLES } from "@/config/constants";
 import { z } from "zod";
 
-// Branch Validation Schema to prevent bad configurations or NoSQL injection
 const branchSchema = z.object({
   name: z.string().min(2, "Branch name must be at least 2 characters").max(100),
   contactNumber: z.string().min(7, "Contact number must be valid").max(15),
@@ -19,7 +18,7 @@ const branchSchema = z.object({
   }),
   location: z.object({
     type: z.literal("Point"),
-    coordinates: z.array(z.number()).length(2), // [longitude, latitude]
+    coordinates: z.array(z.number()).length(2),
   }),
   operatingHours: z.object({
     open: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Must be HH:MM format"),
@@ -28,12 +27,27 @@ const branchSchema = z.object({
   isActive: z.boolean().optional().default(true),
   isAcceptingOrders: z.boolean().optional().default(true),
   managerId: z.string().nullable().optional(),
+  // Optional fields
+  logo: z.string().optional(),
+  description: z.string().max(1000).optional(),
+  deliveryCharge: z.number().min(0).optional(),
+  estimatedDeliveryTime: z.string().max(50).optional(),
+  timezone: z.string().max(60).optional().default("Asia/Kolkata"),
+  whatsappNumber: z.string().max(15).optional(),
 });
+
+function toSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 export async function GET() {
   try {
     await connectDB();
-    const branches = await Branch.find({})
+    const branches = await Branch.find({ isArchived: { $ne: true } })
       .populate("managerId", "name email")
       .sort({ createdAt: -1 })
       .lean();
@@ -58,12 +72,22 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: false,
         message: "Invalid branch payload data",
-        errors: parsed.error.format()
+        errors: parsed.error.format(),
       }, { status: 400 });
     }
 
     await connectDB();
-    const branch = await Branch.create(parsed.data);
+
+    // Auto-generate a unique slug from the branch name
+    const baseSlug = toSlug(parsed.data.name);
+    let slug = baseSlug;
+    let attempt = 0;
+    while (await Branch.exists({ slug })) {
+      attempt++;
+      slug = `${baseSlug}-${attempt}`;
+    }
+
+    const branch = await Branch.create({ ...parsed.data, slug });
     return NextResponse.json({ success: true, data: branch }, { status: 201 });
   } catch (error: any) {
     console.error("POST /api/branches error:", error);

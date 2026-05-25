@@ -27,6 +27,12 @@ const branchPatchSchema = z.object({
   isActive: z.boolean().optional(),
   isAcceptingOrders: z.boolean().optional(),
   managerId: z.string().nullable().optional(),
+  logo: z.string().optional(),
+  description: z.string().max(1000).optional(),
+  deliveryCharge: z.number().min(0).optional(),
+  estimatedDeliveryTime: z.string().max(50).optional(),
+  timezone: z.string().max(60).optional(),
+  whatsappNumber: z.string().max(15).optional(),
 });
 
 export async function PATCH(
