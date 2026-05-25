@@ -31,3 +31,47 @@ export async function GET() {
 
   return NextResponse.json(result);
 }
+
+// One-time seed endpoint — creates admin if missing
+export async function POST() {
+  try {
+    await connectDB();
+    const db = (await import("mongoose")).default.connection.db!;
+
+    const existing = await db.collection("users").findOne({ email: "admin@hpf.com" });
+    if (existing) {
+      return NextResponse.json({ status: "already exists", role: existing.role });
+    }
+
+    const pwd = await bcrypt.hash("admin123", 10);
+    await db.collection("users").insertOne({
+      name: "Super Admin",
+      email: "admin@hpf.com",
+      password: pwd,
+      role: "SUPER_ADMIN",
+      isActive: true,
+      addresses: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const mgr = await db.collection("users").findOne({ email: "manager@hpf.com" });
+    if (!mgr) {
+      const pwd2 = await bcrypt.hash("manager123", 10);
+      await db.collection("users").insertOne({
+        name: "Branch Manager",
+        email: "manager@hpf.com",
+        password: pwd2,
+        role: "BRANCH_MANAGER",
+        isActive: true,
+        addresses: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+
+    return NextResponse.json({ status: "created", email: "admin@hpf.com", password: "admin123" });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+}
