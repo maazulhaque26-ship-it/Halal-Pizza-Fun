@@ -9,9 +9,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -23,11 +23,14 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Sanitize secrets (strip whitespace/newlines)
+      - name: Create .vercel/project.json
         run: |
-          echo "VERCEL_ORG_ID=$(echo "$VERCEL_ORG_ID" | tr -d '[:space:]')" >> $GITHUB_ENV
-          echo "VERCEL_PROJECT_ID=$(echo "$VERCEL_PROJECT_ID" | tr -d '[:space:]')" >> $GITHUB_ENV
-          echo "VERCEL_TOKEN=$(echo "$VERCEL_TOKEN" | tr -d '[:space:]')" >> $GITHUB_ENV
+          mkdir -p .vercel
+          cat > .vercel/project.json << EOF
+          {"projectId":"prj_7baX5i3tfZ3iB1lWRwTB64Mfrw6H","orgId":"team_F7rCvzTD3pIwcFTDcmMwE4sb","projectName":"halal-pizza-fun"}
+          EOF
+          echo "project.json written:"
+          cat .vercel/project.json
 
       - name: Pull production env vars
         run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
@@ -35,5 +38,5 @@ jobs:
       - name: Build
         run: vercel build --prod --token="$VERCEL_TOKEN"
 
-      - name: Deploy prebuilt artifact
+      - name: Deploy
         run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
