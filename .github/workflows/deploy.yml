@@ -22,16 +22,32 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      # Hard-code project link — no vercel pull needed
       - name: Link Vercel project
         run: |
-          mkdir -p .vercel
-          printf '%s' '{"projectId":"prj_7baX5i3tfZ3iB1lWRwTB64Mfrw6H","orgId":"team_F7rCvzTD3pIwcFTDcmMwE4sb","projectName":"halal-pizza-fun"}' \
-            > .vercel/project.json
-          echo "--- project.json ---"
-          cat .vercel/project.json
+          node - <<'JS'
+          const fs = require('fs');
+          fs.mkdirSync('.vercel', { recursive: true });
+          const proj = {
+            projectId: 'prj_7baX5i3tfZ3iB1lWRwTB64Mfrw6H',
+            orgId: 'team_F7rCvzTD3pIwcFTDcmMwE4sb',
+            projectName: 'halal-pizza-fun',
+            settings: {
+              createdAt: 1779694256552,
+              framework: 'nextjs',
+              devCommand: null,
+              installCommand: null,
+              buildCommand: null,
+              outputDirectory: null,
+              rootDirectory: null,
+              directoryListing: false,
+              nodeVersion: '20.x'
+            }
+          };
+          fs.writeFileSync('.vercel/project.json', JSON.stringify(proj, null, 2));
+          console.log('--- project.json ---');
+          console.log(fs.readFileSync('.vercel/project.json', 'utf8'));
+          JS
 
-      # Fetch production env vars straight from Vercel API → no vercel pull
       - name: Fetch production env vars
         run: |
           node - <<'JS'
