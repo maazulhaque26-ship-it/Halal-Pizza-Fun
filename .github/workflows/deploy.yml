@@ -48,28 +48,6 @@ jobs:
           console.log(fs.readFileSync('.vercel/project.json', 'utf8'));
           JS
 
-      - name: Fetch production env vars
-        run: |
-          node - <<'JS'
-          const fs  = require('fs');
-          const pid = 'prj_7baX5i3tfZ3iB1lWRwTB64Mfrw6H';
-          const tid = 'team_F7rCvzTD3pIwcFTDcmMwE4sb';
-          fetch(`https://api.vercel.com/v10/projects/${pid}/env?teamId=${tid}&limit=100`, {
-            headers: { Authorization: `Bearer ${process.env.VERCEL_TOKEN}` }
-          })
-          .then(r => r.json())
-          .then(j => {
-            if (!j.envs) { console.error(JSON.stringify(j)); process.exit(1); }
-            const lines = j.envs
-              .filter(e => e.target.includes('production') && e.value)
-              .map(e => `${e.key}=${e.value}`);
-            fs.mkdirSync('.vercel', { recursive: true });
-            fs.writeFileSync('.vercel/.env.production.local', lines.join('\n') + '\n');
-            console.log(`Written ${lines.length} env vars to .vercel/.env.production.local`);
-          })
-          .catch(e => { console.error(e); process.exit(1); });
-          JS
-
       - name: Build
         run: vercel build --prod --token="$VERCEL_TOKEN"
 
