@@ -14,19 +14,32 @@ if (process.env.NODE_ENV !== "production") {
 
 const app = express();
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
-const allowedOrigins = process.env.NODE_ENV === "production"
-  ? [FRONTEND_URL]
-  : (origin, callback) => callback(null, true); // allow all in dev
+// Build allowed origins list: ALLOWED_ORIGINS takes precedence (comma-separated),
+// then FRONTEND_URL, then localhost fallback for dev.
+const buildAllowedOrigins = () => {
+  if (process.env.ALLOWED_ORIGINS) {
+    return process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean);
+  }
+  if (process.env.FRONTEND_URL) return [process.env.FRONTEND_URL.trim()];
+  return ["http://localhost:3000"];
+};
 
-// Secure headers with Helmet (configured to allow Socket.io connections)
+const ALLOWED_ORIGINS = buildAllowedOrigins();
+
+const corsOriginFn = (origin, callback) => {
+  // Allow requests with no origin (server-to-server, Render health checks)
+  if (!origin) return callback(null, true);
+  if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+  callback(new Error(`CORS: origin '${origin}' not allowed`));
+};
+
+const corsOptions = {
+  origin: process.env.NODE_ENV === "production" ? corsOriginFn : (o, cb) => cb(null, true),
+  credentials: true,
+};
+
 app.use(helmet());
-
-app.use(cors(
-  process.env.NODE_ENV === "production"
-    ? { origin: FRONTEND_URL, credentials: true }
-    : { origin: (origin, callback) => callback(null, true), credentials: true }
-));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Health check for Render uptime monitoring
@@ -46,12 +59,14 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.NODE_ENV === "production"
-      ? FRONTEND_URL
-      : (origin, callback) => callback(null, true),
+    origin: process.env.NODE_ENV === "production" ? corsOriginFn : (o, cb) => cb(null, true),
     methods: ["GET", "POST"],
     credentials: true,
   },
+  // Prevent connection floods
+  connectTimeout: 10000,
+  pingTimeout: 20000,
+  pingInterval: 25000,
 });
 
 // Helper to parse cookies
@@ -131,13 +146,25 @@ io.use(async (socket, next) => {
   }
 });
 
-// Event deduplication cache (stores event/order IDs to prevent replays)
-const eventDeduplicator = new Set();
-const cleanDeduplicator = () => {
-  if (eventDeduplicator.size > 5000) {
-    eventDeduplicator.clear();
-  }
+// TTL-based event deduplication — prevents replay without the nuclear Set.clear() at 5000.
+// Each key expires after 5 minutes, keeping memory bounded without dropping recent duplicates.
+const eventDeduplicator = new Map(); // key → expiresAt timestamp
+const DEDUP_TTL_MS = 5 * 60 * 1000;
+
+const isDuplicate = (key) => {
+  const expiresAt = eventDeduplicator.get(key);
+  if (expiresAt && Date.now() < expiresAt) return true;
+  eventDeduplicator.set(key, Date.now() + DEDUP_TTL_MS);
+  return false;
 };
+
+// Sweep expired entries every 10 minutes to prevent unbounded growth
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, exp] of eventDeduplicator) {
+    if (now >= exp) eventDeduplicator.delete(k);
+  }
+}, 10 * 60 * 1000);
 
 io.on("connection", (socket) => {
   console.log(`🔌 Secured Client connected: ${socket.id} (User: ${socket.userId}, Role: ${socket.role})`);
@@ -194,11 +221,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Deduplication check
-    const dedupKey = `new_order_${orderId}`;
-    if (eventDeduplicator.has(dedupKey)) return;
-    eventDeduplicator.add(dedupKey);
-    cleanDeduplicator();
+    if (isDuplicate(`new_order_${orderId}`)) return;
 
     // Broadcast to specific branch and global admin
     io.to(`branch_${branchId}`).to("admin_global").emit("NEW_ORDER", data);
@@ -214,11 +237,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Deduplication check
-    const dedupKey = `status_update_${orderId}_${status}`;
-    if (eventDeduplicator.has(dedupKey)) return;
-    eventDeduplicator.add(dedupKey);
-    cleanDeduplicator();
+    if (isDuplicate(`status_update_${orderId}_${status}`)) return;
 
     // Notify customer
     if (userId) io.to(`user_${userId}`).emit("ORDER_STATUS_CHANGED", data);
@@ -237,11 +256,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Deduplication
-    const dedupKey = `transfer_${orderId}_${toBranchId}`;
-    if (eventDeduplicator.has(dedupKey)) return;
-    eventDeduplicator.add(dedupKey);
-    cleanDeduplicator();
+    if (isDuplicate(`transfer_${orderId}_${toBranchId}`)) return;
 
     // Notify source branch
     io.to(`branch_${fromBranchId}`).emit("ORDER_TRANSFERRED_OUT", {
@@ -323,11 +338,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Deduplication
-    const dedupKey = `refund_${orderId}`;
-    if (eventDeduplicator.has(dedupKey)) return;
-    eventDeduplicator.add(dedupKey);
-    cleanDeduplicator();
+    if (isDuplicate(`refund_${orderId}`)) return;
 
     // Notify customer
     if (customerId) {
@@ -415,13 +426,7 @@ app.post("/api/notify/new-order", validateApiKey, (req, res) => {
     return res.status(400).json({ success: false, message: "branchId and orderId are required" });
   }
 
-  // Deduplication check
-  const dedupKey = `new_order_${orderId}`;
-  if (eventDeduplicator.has(dedupKey)) {
-    return res.json({ success: true, cached: true });
-  }
-  eventDeduplicator.add(dedupKey);
-  cleanDeduplicator();
+  if (isDuplicate(`new_order_${orderId}`)) return res.json({ success: true, cached: true });
 
   const payload = { branchId, orderId, order, timestamp: new Date() };
 
@@ -439,13 +444,7 @@ app.post("/api/notify/update-status", validateApiKey, (req, res) => {
     return res.status(400).json({ success: false, message: "orderId and status are required" });
   }
 
-  // Deduplication check
-  const dedupKey = `status_update_${orderId}_${status}`;
-  if (eventDeduplicator.has(dedupKey)) {
-    return res.json({ success: true, cached: true });
-  }
-  eventDeduplicator.add(dedupKey);
-  cleanDeduplicator();
+  if (isDuplicate(`status_update_${orderId}_${status}`)) return res.json({ success: true, cached: true });
 
   const payload = { userId, orderId, status, branchId, timestamp: new Date() };
 
@@ -465,13 +464,7 @@ app.post("/api/notify/order-transfer", validateApiKey, (req, res) => {
     return res.status(400).json({ success: false, message: "Missing required fields" });
   }
 
-  // Deduplication
-  const dedupKey = `transfer_${orderId}_${toBranchId}`;
-  if (eventDeduplicator.has(dedupKey)) {
-    return res.json({ success: true, cached: true });
-  }
-  eventDeduplicator.add(dedupKey);
-  cleanDeduplicator();
+  if (isDuplicate(`transfer_${orderId}_${toBranchId}`)) return res.json({ success: true, cached: true });
 
   // Notify source branch (order disappears)
   io.to(`branch_${fromBranchId}`).emit("ORDER_TRANSFERRED_OUT", {
@@ -550,13 +543,7 @@ app.post("/api/notify/refund", validateApiKey, (req, res) => {
     return res.status(400).json({ success: false, message: "orderId and customerId are required" });
   }
 
-  // Deduplication
-  const dedupKey = `refund_${orderId}`;
-  if (eventDeduplicator.has(dedupKey)) {
-    return res.json({ success: true, cached: true });
-  }
-  eventDeduplicator.add(dedupKey);
-  cleanDeduplicator();
+  if (isDuplicate(`refund_${orderId}`)) return res.json({ success: true, cached: true });
 
   // Notify customer
   io.to(`user_${customerId}`).emit("REFUND_INITIATED", {

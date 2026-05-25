@@ -11,7 +11,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL
-        value: https://food-delivery-five-virid.vercel.app
+        value: https://halal-pizza-fun.vercel.app
       - key: NEXTAUTH_SECRET
         sync: false
       - key: JWT_SECRET

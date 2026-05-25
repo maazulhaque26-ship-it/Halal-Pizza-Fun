@@ -4,8 +4,16 @@ import { authOptions } from "@/lib/auth/options";
 import { connectDB } from "@/lib/db/mongoose";
 import { Settings } from "@/lib/db/models/Settings";
 import { ROLES } from "@/config/constants";
-import fs from "fs";
-import path from "path";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/quicktime"];
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB
 
 export async function GET() {
   try {
@@ -15,7 +23,7 @@ export async function GET() {
     }
 
     await connectDB();
-    const settings = await Settings.findOne({}).lean() as any;
+    const settings = (await Settings.findOne({}).lean()) as any;
     return NextResponse.json({
       success: true,
       data: {
@@ -42,33 +50,35 @@ export async function POST(request: Request) {
     const videoTitle = formData.get("videoTitle") as string | null;
     const videoSubtitle = formData.get("videoSubtitle") as string | null;
 
-    let finalVideoUrl = videoUrl || "";
+    let finalVideoUrl = videoUrl?.trim() || "";
 
     if (file) {
-      const extension = path.extname(file.name).toLowerCase();
-      const allowedVideoExtensions = [".mp4", ".webm", ".ogg", ".mov"];
-      if (!allowedVideoExtensions.includes(extension)) {
-        return NextResponse.json({ success: false, message: "Only video files (mp4, webm, ogg, mov) are allowed." }, { status: 400 });
+      if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
+        return NextResponse.json(
+          { success: false, message: "Only mp4, webm, ogg, mov files are allowed." },
+          { status: 400 }
+        );
       }
-
-      const maxSizeBytes = 100 * 1024 * 1024;
-      if (file.size > maxSizeBytes) {
-        return NextResponse.json({ success: false, message: "Video file must be under 100MB." }, { status: 400 });
+      if (file.size > MAX_VIDEO_BYTES) {
+        return NextResponse.json({ success: false, message: "Video must be under 100 MB." }, { status: 400 });
       }
 
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      const videosDir = path.join(process.cwd(), "public", "uploads", "videos");
-      if (!fs.existsSync(videosDir)) {
-        fs.mkdirSync(videosDir, { recursive: true });
-      }
+      const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            { folder: "hpf/videos", resource_type: "video" },
+            (err, res) => {
+              if (err || !res) reject(err || new Error("Cloudinary upload failed"));
+              else resolve(res as { secure_url: string });
+            }
+          )
+          .end(buffer);
+      });
 
-      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-      const filename = `promo_${uniqueSuffix}${extension}`;
-      const filepath = path.join(videosDir, filename);
-      await fs.promises.writeFile(filepath, buffer);
-      finalVideoUrl = `/uploads/videos/${filename}`;
+      finalVideoUrl = result.secure_url;
     }
 
     await connectDB();
@@ -84,7 +94,7 @@ export async function POST(request: Request) {
       { upsert: true }
     );
 
-    return NextResponse.json({ success: true, message: "Video updated successfully", videoUrl: finalVideoUrl });
+    return NextResponse.json({ success: true, videoUrl: finalVideoUrl });
   } catch (error: any) {
     console.error("Video upload error:", error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
@@ -99,13 +109,16 @@ export async function DELETE() {
     }
 
     await connectDB();
-    const settings = await Settings.findOne({}).lean() as any;
-    const existingVideoUrl: string = settings?.aboutPage?.videoUrl || "";
+    const settings = (await Settings.findOne({}).lean()) as any;
+    const existingUrl: string = settings?.aboutPage?.videoUrl || "";
 
-    if (existingVideoUrl && existingVideoUrl.startsWith("/uploads/")) {
-      const localPath = path.join(process.cwd(), "public", existingVideoUrl);
-      if (fs.existsSync(localPath)) {
-        await fs.promises.unlink(localPath);
+    // Delete from Cloudinary if it was a Cloudinary URL
+    if (existingUrl && existingUrl.includes("cloudinary.com")) {
+      try {
+        const publicId = existingUrl.split("/upload/")[1]?.replace(/\.[^.]+$/, "");
+        if (publicId) await cloudinary.uploader.destroy(publicId, { resource_type: "video" });
+      } catch {
+        // Non-fatal — proceed with clearing the DB field
       }
     }
 

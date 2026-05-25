@@ -135,8 +135,8 @@ export class RefundService {
     amount: number
   ): Promise<any> {
     try {
-      const razorpayKey = process.env.RAZORPAY_KEY_SECRET;
-      const razorpaySecret = process.env.RAZORPAY_SECRET;
+      const razorpayKey = process.env.RAZORPAY_KEY_ID;
+      const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
 
       if (!razorpayKey || !razorpaySecret) {
         throw new Error("Razorpay credentials not configured");
