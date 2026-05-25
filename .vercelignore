@@ -1,0 +1,12 @@
+# Never needed by Vercel's build
+scripts/
+tests/
+types/
+*.md
+.env*
+dev.log
+curl_*.html
+curl_*.txt
+replace_hpf.js
+socket-server.js
+render.yaml
