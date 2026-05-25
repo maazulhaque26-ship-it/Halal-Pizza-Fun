@@ -12,6 +12,7 @@ const CSRF_PROTECTED_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const CSRF_EXEMPT_PREFIXES = [
   "/api/auth/",       // NextAuth manages its own CSRF
   "/api/csrf",        // token issuance endpoint itself
+  "/api/debug-auth",  // one-time admin seed — removed after use
 ];
 
 function isCsrfExempt(pathname: string): boolean {
