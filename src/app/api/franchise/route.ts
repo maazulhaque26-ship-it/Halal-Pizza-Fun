@@ -243,7 +243,7 @@ export async function POST(req: Request) {
     // ── Zod validation + honeypot check ──────────────────────────────────────
     const parsed = franchiseSchema.safeParse(await req.json());
     if (!parsed.success) {
-      const firstError = parsed.error.errors[0];
+      const firstError = parsed.error.issues[0];
       if (firstError?.path[0] === "website") {
         // Honeypot triggered — silently accept to not tip off bots
         return NextResponse.json({ success: true, message: "Application submitted successfully" });
