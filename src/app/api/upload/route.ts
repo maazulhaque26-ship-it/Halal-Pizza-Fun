@@ -12,6 +12,18 @@ cloudinary.config({
 
 export async function POST(request: Request) {
   try {
+    if (
+      !process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
+      !process.env.CLOUDINARY_API_KEY ||
+      !process.env.CLOUDINARY_API_SECRET
+    ) {
+      console.error("[Upload] Cloudinary env vars missing");
+      return NextResponse.json(
+        { success: false, message: "Image upload is not configured on the server." },
+        { status: 500 }
+      );
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
@@ -37,7 +49,7 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+    const uploadPromise = new Promise<{ secure_url: string }>((resolve, reject) => {
       cloudinary.uploader
         .upload_stream({ folder, resource_type: "image" }, (error, res) => {
           if (error || !res) reject(error || new Error("Cloudinary upload failed"));
@@ -45,6 +57,12 @@ export async function POST(request: Request) {
         })
         .end(buffer);
     });
+
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Upload timed out after 30 seconds")), 30_000)
+    );
+
+    const result = await Promise.race([uploadPromise, timeoutPromise]);
 
     return NextResponse.json({ success: true, url: result.secure_url });
   } catch (error: any) {

@@ -134,15 +134,22 @@ export default function AdminProductsPage() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("folder", "hpf_products");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 35_000);
     try {
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const res = await fetch("/api/upload", { method: "POST", body: formData, signal: controller.signal });
       const data = await res.json();
       if (data.success) {
         setForm((p: any) => ({ ...p, image: data.url }));
         toast.success("Image uploaded successfully!");
       } else toast.error(data.message || "Upload failed");
-    } catch { toast.error("Upload failed"); }
-    finally { setUploadingImage(false); }
+    } catch (err: any) {
+      if (err?.name === "AbortError") toast.error("Upload timed out — please try again");
+      else toast.error("Upload failed");
+    } finally {
+      clearTimeout(timeout);
+      setUploadingImage(false);
+    }
   };
 
   const handleSave = async () => {
