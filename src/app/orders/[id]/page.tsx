@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { CheckCircle, Clock, MapPin, Phone, ChefHat, Truck, Star, Package } from "lucide-react";
-import { io } from "socket.io-client";
+import { getSocket, connectSocket } from "@/lib/socket";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { API, ORDER_STATUS } from "@/config/constants";
@@ -48,35 +48,23 @@ export default function OrderTrackingPage() {
 
   const { data: session } = useSession();
 
-  // Socket connection for real-time updates.
-  // Depends only on [session, id] — NOT on `order` state, which changes every
-  // 15 seconds via the polling interval and would recreate the socket each time.
+  // Real-time order status updates via the app-wide socket singleton.
+  // Deps: [session?.user?.id, id] — stable values; no socket recreation on refetch.
   useEffect(() => {
     if (!session?.user?.id) return;
-    let socket: ReturnType<typeof io> | null = null;
 
-    (async () => {
-      let token: string | undefined;
-      try {
-        const res = await fetch("/api/auth/socket-token");
-        if (res.ok) ({ token } = await res.json());
-      } catch { /* connect without token */ }
+    const socket = getSocket();
+    const onStatusChange = (data: any) => {
+      if (String(data.orderId) === String(id)) fetchOrder();
+    };
 
-      socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000", {
-        transports: ["websocket", "polling"],
-        auth: token ? { token } : { userId: session.user.id },
-      });
+    socket.on("ORDER_STATUS_CHANGED", onStatusChange);
+    connectSocket(); // no-op if already connected
 
-      socket.on("ORDER_STATUS_CHANGED", (data) => {
-        // Use `id` from params (stable) rather than `order.orderId` (stale closure)
-        if (String(data.orderId) === String(id)) {
-          fetchOrder();
-        }
-      });
-    })();
-
-    return () => { socket?.disconnect(); };
-  }, [session, id]);
+    return () => {
+      socket.off("ORDER_STATUS_CHANGED", onStatusChange);
+    };
+  }, [session?.user?.id, id]);
 
   if (loading) return (
     <div className="min-h-screen bg-background flex flex-col">

@@ -7,7 +7,7 @@ import {
   Package, Loader2, ArrowRightLeft, Store, AlertCircle,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { getSocket } from "@/lib/socket";
+import { getSocket, connectSocket } from "@/lib/socket";
 import { toast } from "@/components/ui/Toast";
 import { API, ORDER_STATUS, ROUTES } from "@/config/constants";
 
@@ -118,8 +118,7 @@ export default function BranchOrdersPage() {
     const refresh = () => fetchOrders();
     const onNew = () => { toast.info("🔔 New order received!"); fetchOrders(); };
 
-    if (!socket.connected) socket.connect();
-    if (branchId) socket.emit("join_branch", branchId);
+    connectSocket(); // JWT-authenticated connect; server auto-joins branch room on connect
 
     socket.on("NEW_ORDER", onNew);
     socket.on("ORDER_STATUS_CHANGED", refresh);

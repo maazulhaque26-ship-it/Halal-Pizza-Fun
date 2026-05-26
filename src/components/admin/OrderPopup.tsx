@@ -4,7 +4,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { CheckCircle, XCircle, Utensils, MapPin, DollarSign } from "lucide-react";
 import { useOrderPopupStore } from "@/store/useOrderPopupStore";
-import { getSocket } from "@/lib/socket";
+import { getSocket, connectSocket } from "@/lib/socket";
 
 export function OrderPopup() {
   const { data: session } = useSession();
@@ -44,16 +44,7 @@ export function OrderPopup() {
 
     if (!socket.connected) {
       console.log("[OrderPopup] Connecting socket...");
-      (async () => {
-        try {
-          const res = await fetch("/api/auth/socket-token");
-          if (res.ok) {
-            const { token } = await res.json();
-            (socket.auth as any) = { token };
-          }
-        } catch { /* connect without token if fetch fails */ }
-        socket.connect();
-      })();
+      connectSocket(); // fetches JWT, sets socket.auth, then connects
     }
 
     // ── Join the correct rooms once connected ──────────────────────────────

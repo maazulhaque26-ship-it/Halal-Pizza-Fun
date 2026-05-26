@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { MapPin, Navigation, CheckCircle, Package, AlertCircle, Phone, ArrowRight } from "lucide-react";
 import { toast } from "@/components/ui/Toast";
-import { io } from "socket.io-client";
+import { getSocket, connectSocket } from "@/lib/socket";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ROLES } from "@/config/constants";
@@ -32,27 +32,22 @@ export default function DeliveryDashboard() {
   const [totalEarnings, setTotalEarnings] = useState(124.50);
   const [deliveriesToday, setDeliveriesToday] = useState(12);
 
-  // Initialize Socket for Real-time tracking
+  // Initialize Socket for real-time tracking via the app-wide singleton.
+  // Never call io() directly — use getSocket()/connectSocket() so there is
+  // exactly ONE connection regardless of how many components mount.
   useEffect(() => {
     if (!session?.user?.id) return;
-    let socket: ReturnType<typeof io> | null = null;
 
-    (async () => {
-      let token: string | undefined;
-      try {
-        const res = await fetch("/api/auth/socket-token");
-        if (res.ok) ({ token } = await res.json());
-      } catch { /* connect without token */ }
+    const socket = getSocket();
+    const onConnect = () => console.log("[Delivery] Connected to socket");
 
-      socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000", {
-        auth: token ? { token } : { userId: session.user.id, role: "DELIVERY_PARTNER" },
-      });
+    socket.on("connect", onConnect);
+    connectSocket(); // fetches JWT, sets socket.auth, then calls socket.connect()
 
-      socket.on("connect", () => console.log("Delivery Partner connected to socket"));
-    })();
-
-    return () => { socket?.disconnect(); };
-  }, [session]);
+    return () => {
+      socket.off("connect", onConnect);
+    };
+  }, [session?.user?.id]);
 
   if (session?.user?.role && session.user.role !== ROLES.DELIVERY_STAFF && session.user.role !== ROLES.SUPER_ADMIN) {
     return (

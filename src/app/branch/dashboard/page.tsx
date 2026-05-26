@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Clock, CheckCircle, AlertCircle, RefreshCw, XCircle, Wifi, WifiOff } from "lucide-react";
 import { toast } from "@/components/ui/Toast";
 import { API, ORDER_STATUS } from "@/config/constants";
-import { getSocket } from "@/lib/socket";
+import { getSocket, connectSocket } from "@/lib/socket";
 
 interface Order {
   _id: string; orderId: string; status: string; total: number; createdAt: string; specialInstructions?: string;
@@ -122,7 +122,7 @@ export default function BranchDashboardPage() {
     };
 
     if (!socket.connected) {
-      socket.connect();
+      connectSocket(); // fetches JWT, sets auth, then connects — no raw connect() calls
     } else {
       joinRooms();
       setSocketConnected(true);
