@@ -35,15 +35,23 @@ export default function DeliveryDashboard() {
   // Initialize Socket for Real-time tracking
   useEffect(() => {
     if (!session?.user?.id) return;
-    
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000", {
-      auth: { userId: session.user.id, role: "DELIVERY_PARTNER" }
-    });
-    
-    socket.on("connect", () => console.log("Delivery Partner connected to socket"));
-    
-    
-    return () => { socket.disconnect(); };
+    let socket: ReturnType<typeof io> | null = null;
+
+    (async () => {
+      let token: string | undefined;
+      try {
+        const res = await fetch("/api/auth/socket-token");
+        if (res.ok) ({ token } = await res.json());
+      } catch { /* connect without token */ }
+
+      socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000", {
+        auth: token ? { token } : { userId: session.user.id, role: "DELIVERY_PARTNER" },
+      });
+
+      socket.on("connect", () => console.log("Delivery Partner connected to socket"));
+    })();
+
+    return () => { socket?.disconnect(); };
   }, [session]);
 
   if (session?.user?.role && session.user.role !== ROLES.DELIVERY_STAFF && session.user.role !== ROLES.SUPER_ADMIN) {

@@ -44,7 +44,16 @@ export function OrderPopup() {
 
     if (!socket.connected) {
       console.log("[OrderPopup] Connecting socket...");
-      socket.connect();
+      (async () => {
+        try {
+          const res = await fetch("/api/auth/socket-token");
+          if (res.ok) {
+            const { token } = await res.json();
+            (socket.auth as any) = { token };
+          }
+        } catch { /* connect without token if fetch fails */ }
+        socket.connect();
+      })();
     }
 
     // ── Join the correct rooms once connected ──────────────────────────────

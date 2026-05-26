@@ -51,17 +51,27 @@ export default function OrderTrackingPage() {
   // Socket connection for real-time updates
   useEffect(() => {
     if (!session?.user?.id) return;
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000", {
-      auth: { userId: session.user.id },
-    });
-    
-    socket.on("ORDER_STATUS_CHANGED", (data) => {
-      if (data.orderId === order?.orderId || data.orderId === id) {
-        fetchOrder();
-      }
-    });
+    let socket: ReturnType<typeof io> | null = null;
 
-    return () => { socket.disconnect(); };
+    (async () => {
+      let token: string | undefined;
+      try {
+        const res = await fetch("/api/auth/socket-token");
+        if (res.ok) ({ token } = await res.json());
+      } catch { /* connect without token */ }
+
+      socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000", {
+        auth: token ? { token } : { userId: session.user.id },
+      });
+
+      socket.on("ORDER_STATUS_CHANGED", (data) => {
+        if (data.orderId === order?.orderId || data.orderId === id) {
+          fetchOrder();
+        }
+      });
+    })();
+
+    return () => { socket?.disconnect(); };
   }, [session, id, order?.orderId]);
 
   if (loading) return (
