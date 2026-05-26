@@ -56,7 +56,7 @@ export default function AdminProductsPage() {
       const cData = await cRes.json();
       if (pData.success) setProducts(pData.data);
       if (cData.success) setCategories(cData.data);
-    } catch { toast.error("Failed to load products"); }
+    } catch { toast.error("Could not load products. Please refresh the page."); }
     finally { setLoading(false); }
   };
 
@@ -154,7 +154,7 @@ export default function AdminProductsPage() {
 
   const handleSave = async () => {
     if (!form.name || !form.price || !form.categoryId) {
-      toast.error("Name, price, and category are required"); return;
+      toast.error("Please fill in product name, price, and category"); return;
     }
     if (!validateVariants()) return;
 
@@ -168,16 +168,19 @@ export default function AdminProductsPage() {
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!data.success) { toast.error(data.message || "Save failed"); return; }
+      if (!data.success) {
+        toast.error(res.status === 401 || res.status === 403
+          ? "You don't have permission to do this"
+          : "Could not save product. Please try again.");
+        return;
+      }
 
       const productId = editing ? editing._id : data.data?._id;
 
       if (form.hasVariants && productId) {
-        // Delete removed existing variants
         for (const vId of deletedVariantIds) {
           await fetch(`/api/products/${productId}/variants/${vId}`, { method: "DELETE" });
         }
-        // Persist new (unsaved) variants
         const newRows = variants.filter(v => !v._id);
         for (const row of newRows) {
           if (!row.variantName.trim() || !row.price) continue;
@@ -197,7 +200,7 @@ export default function AdminProductsPage() {
       toast.success(editing ? "Product updated!" : "Product created!");
       setShowModal(false);
       fetchAll();
-    } catch { toast.error("Save failed"); }
+    } catch { toast.error("Something went wrong. Please check your connection and try again."); }
     finally { setSaving(false); }
   };
 
@@ -206,9 +209,9 @@ export default function AdminProductsPage() {
     try {
       const res = await fetch(`${API.PRODUCTS}?id=${id}`, { method: "DELETE" });
       const data = await res.json();
-      if (data.success) { toast.success("Deleted"); fetchAll(); }
-      else toast.error(data.message);
-    } catch { toast.error("Delete failed"); }
+      if (data.success) { toast.success("Product deleted"); fetchAll(); }
+      else toast.error("Could not delete product. Please try again.");
+    } catch { toast.error("Could not delete product. Please try again."); }
   };
 
   const toggleAvailability = async (product: Product) => {
