@@ -48,7 +48,9 @@ export default function OrderTrackingPage() {
 
   const { data: session } = useSession();
 
-  // Socket connection for real-time updates
+  // Socket connection for real-time updates.
+  // Depends only on [session, id] — NOT on `order` state, which changes every
+  // 15 seconds via the polling interval and would recreate the socket each time.
   useEffect(() => {
     if (!session?.user?.id) return;
     let socket: ReturnType<typeof io> | null = null;
@@ -61,18 +63,20 @@ export default function OrderTrackingPage() {
       } catch { /* connect without token */ }
 
       socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000", {
+        transports: ["websocket", "polling"],
         auth: token ? { token } : { userId: session.user.id },
       });
 
       socket.on("ORDER_STATUS_CHANGED", (data) => {
-        if (data.orderId === order?.orderId || data.orderId === id) {
+        // Use `id` from params (stable) rather than `order.orderId` (stale closure)
+        if (String(data.orderId) === String(id)) {
           fetchOrder();
         }
       });
     })();
 
     return () => { socket?.disconnect(); };
-  }, [session, id, order?.orderId]);
+  }, [session, id]);
 
   if (loading) return (
     <div className="min-h-screen bg-background flex flex-col">

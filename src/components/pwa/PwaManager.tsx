@@ -33,7 +33,10 @@ export function PwaManager() {
 
   useEffect(() => {
     // ── 1. Service Worker Registration ─────────────────────────────────────
-    if ("serviceWorker" in navigator) {
+    // Skip in development: registering the SW in dev-mode causes the SW to
+    // intercept Next.js HMR WebSocket connections, serve stale cached assets,
+    // and trigger window.reload() loops via the controllerchange event.
+    if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
       navigator.serviceWorker
         .register("/sw.js")
         .then((reg) => {
@@ -175,7 +178,7 @@ export function PwaManager() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleInstallClick}
-              className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-[#080d15] font-bold px-3 py-1.5 rounded-xl text-xs shadow-lg transition-all flex items-center gap-1"
+              className="bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-[#080d15] font-bold px-3 py-1.5 rounded-xl text-xs shadow-lg transition-all flex items-center gap-1"
             >
               <Download className="w-3.5 h-3.5" /> Install
             </button>

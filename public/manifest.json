@@ -1,6 +1,6 @@
 {
   "name": "HPF Food Delivery",
-  "short_name": "HPF App",
+  "short_name": "HPF",
   "description": "Premium Multi-Branch Food Delivery Platform",
   "start_url": "/",
   "display": "standalone",
@@ -8,6 +8,8 @@
   "theme_color": "#0f172a",
   "orientation": "portrait-primary",
   "scope": "/",
+  "categories": ["food", "lifestyle", "shopping"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -34,21 +36,21 @@
       "short_name": "Menu",
       "description": "View premium gourmet dishes",
       "url": "/menu",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "My Orders",
       "short_name": "Orders",
       "description": "Track live orders",
       "url": "/orders",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Latest Offers",
       "short_name": "Offers",
       "description": "View exclusive discounts",
       "url": "/offers",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

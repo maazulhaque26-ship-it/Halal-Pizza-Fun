@@ -64,10 +64,16 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  // Prevent connection floods
-  connectTimeout: 10000,
-  pingTimeout: 20000,
+  // connectTimeout: time allowed for handshake completion.
+  // 10s was too low for mobile networks + Render cold starts (~30s wake time).
+  connectTimeout: 45000,
+  // pingTimeout: how long to wait for a pong after sending a ping.
+  // Increased from 20s → 60s to tolerate mobile network interruptions and
+  // Render's occasional latency spikes without spurious disconnects.
+  pingTimeout: 60000,
   pingInterval: 25000,
+  // Allow both WebSocket and polling. Clients prefer WebSocket first.
+  transports: ["websocket", "polling"],
 });
 
 // Helper to parse cookies
@@ -131,10 +137,11 @@ io.use(async (socket, next) => {
       return next(new Error("Authentication error: Decryption failed"));
     }
 
-    // Bind validated claims to socket
-    socket.userId = decoded.id || decoded.sub;
+    // Bind validated claims to socket — coerce to strings so room comparisons
+    // work correctly regardless of whether the JWT carries a string or ObjectId.
+    socket.userId = String(decoded.id || decoded.sub || "");
     socket.role = decoded.role;
-    socket.branchId = decoded.branchId;
+    socket.branchId = decoded.branchId ? String(decoded.branchId) : null;
 
     if (!socket.userId || !socket.role) {
       return next(new Error("Authentication error: Invalid token payload"));

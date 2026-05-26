@@ -1,25 +1,33 @@
 {
-  "name": "HPF Restaurant Ordering Management System",
-  "short_name": "HPF Admin",
-  "description": "Installable admin and branch order management app.",
-  "start_url": "/admin/dashboard",
-  "scope": "/",
+  "name": "HPF Food Delivery",
+  "short_name": "HPF",
+  "description": "Premium Multi-Branch Food Delivery Platform",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#D4AF37",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["food", "lifestyle", "shopping"],
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/logo.png",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/favicon.ico",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

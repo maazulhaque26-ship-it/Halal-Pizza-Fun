@@ -15,7 +15,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
 
-  NEXT_PUBLIC_SOCKET_URL: z.string().default("http://localhost:3000"),
+  NEXT_PUBLIC_SOCKET_URL: z.string().default("http://localhost:4000"),
 
   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
