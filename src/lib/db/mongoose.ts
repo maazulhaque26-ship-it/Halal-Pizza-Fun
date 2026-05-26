@@ -1,6 +1,27 @@
 import mongoose from "mongoose";
 import { env } from "@/config/env";
 
+// Register every model once so populate() never throws "Schema not registered".
+// Import order matters: referenced models (Category, Branch, User) before dependants.
+import "@/lib/db/models/User";
+import "@/lib/db/models/Branch";
+import "@/lib/db/models/Category";
+import "@/lib/db/models/Product";
+import "@/lib/db/models/ProductVariant";
+import "@/lib/db/models/Order";
+import "@/lib/db/models/Payment";
+import "@/lib/db/models/Coupon";
+import "@/lib/db/models/Review";
+import "@/lib/db/models/Notification";
+import "@/lib/db/models/DeliveryPartner";
+import "@/lib/db/models/Area";
+import "@/lib/db/models/OrderTransfer";
+import "@/lib/db/models/AuditLog";
+import "@/lib/db/models/Inventory";
+import "@/lib/db/models/Settings";
+import "@/lib/db/models/IdempotencyKey";
+import "@/lib/db/models/Migration";
+
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;

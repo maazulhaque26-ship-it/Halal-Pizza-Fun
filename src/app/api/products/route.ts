@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/mongoose";
 import { Product } from "@/lib/db/models/Product";
-import "@/lib/db/models/Category"; // must be imported so Mongoose registers the schema before populate()
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/options";
 import { ROLES } from "@/config/constants";
