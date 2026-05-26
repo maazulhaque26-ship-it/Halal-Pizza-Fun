@@ -8,48 +8,73 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
     steps:
+      # ── 1. Checkout ───────────────────────────────────────────────────────
       - uses: actions/checkout@v4
 
+      # ── 2. Node ───────────────────────────────────────────────────────────
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
 
+      # ── 3. Vercel CLI ─────────────────────────────────────────────────────
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Link Vercel project
+      # ── 4. Pull production env vars ───────────────────────────────────────
+      # This is the step that was missing.
+      #
+      # `vercel pull --environment=production` contacts the Vercel API,
+      # downloads every Production environment variable, and writes them to
+      # .env.production.local. `vercel build` then reads that file and injects
+      # the vars into `process.env` before running `next build`.
+      #
+      # Without this step, NEXT_PUBLIC_* vars are undefined at build time, so
+      # Next.js inlines "undefined" → the || "localhost" fallback wins → the
+      # production bundle connects to ws://localhost:4000 forever.
+      #
+      # VERCEL_ORG_ID and VERCEL_PROJECT_ID tell the CLI which project to pull
+      # from. They are already stored as GitHub Secrets (set via
+      # github-set-secrets.js). VERCEL_TOKEN authenticates the API call.
+      - name: Pull Vercel production environment variables
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      # ── 5. Verify the critical env var is now present ─────────────────────
+      # Fail fast with a clear message rather than letting next.config.ts
+      # throw a cryptic error 3 minutes into the build.
+      - name: Verify NEXT_PUBLIC_SOCKET_URL was pulled
         run: |
-          node - <<'JS'
-          const fs = require('fs');
-          fs.mkdirSync('.vercel', { recursive: true });
-          const proj = {
-            projectId: 'prj_7baX5i3tfZ3iB1lWRwTB64Mfrw6H',
-            orgId: 'team_F7rCvzTD3pIwcFTDcmMwE4sb',
-            projectName: 'halal-pizza-fun',
-            settings: {
-              createdAt: 1779694256552,
-              framework: 'nextjs',
-              devCommand: null,
-              installCommand: null,
-              buildCommand: null,
-              outputDirectory: null,
-              rootDirectory: null,
-              directoryListing: false,
-              nodeVersion: '20.x'
-            }
-          };
-          fs.writeFileSync('.vercel/project.json', JSON.stringify(proj, null, 2));
-          console.log('--- project.json ---');
-          console.log(fs.readFileSync('.vercel/project.json', 'utf8'));
-          JS
+          if [ -f .env.production.local ] && grep -q "NEXT_PUBLIC_SOCKET_URL" .env.production.local; then
+            VALUE=$(grep "NEXT_PUBLIC_SOCKET_URL" .env.production.local | cut -d= -f2-)
+            echo "✅ NEXT_PUBLIC_SOCKET_URL = $VALUE"
+          else
+            echo "❌ NEXT_PUBLIC_SOCKET_URL not found in .env.production.local"
+            echo ""
+            echo "Fix: Go to Vercel dashboard → your project → Settings"
+            echo "     → Environment Variables → add NEXT_PUBLIC_SOCKET_URL"
+            echo "       with value: https://hpf-socket-server.onrender.com"
+            echo "       and set target: Production"
+            exit 1
+          fi
 
+      # ── 6. Build ──────────────────────────────────────────────────────────
+      # vercel build reads .env.production.local (written by vercel pull above)
+      # and injects those vars into process.env before running next build.
+      # NEXT_PUBLIC_SOCKET_URL is now available and gets inlined into the bundle.
       - name: Build
-        run: vercel build --prod --token="$VERCEL_TOKEN"
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      # ── 7. Deploy prebuilt artifacts ──────────────────────────────────────
       - name: Deploy
-        run: vercel deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN"
+        run: vercel deploy --prebuilt --prod --archive=tgz --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
