@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, data: product }, { status: 201 });
   } catch (error: any) {
     console.error("POST /api/products error:", error);
-    return NextResponse.json({ success: false, message: error.message || "Server error" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Could not create product" }, { status: 500 });
   }
 }
 
@@ -63,7 +63,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true, data: product });
   } catch (error: any) {
     console.error("PATCH /api/products error:", error);
-    return NextResponse.json({ success: false, message: error.message || "Server error" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Could not update product" }, { status: 500 });
   }
 }
 

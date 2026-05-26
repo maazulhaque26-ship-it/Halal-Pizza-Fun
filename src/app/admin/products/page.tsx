@@ -141,11 +141,11 @@ export default function AdminProductsPage() {
       const data = await res.json();
       if (data.success) {
         setForm((p: any) => ({ ...p, image: data.url }));
-        toast.success("Image uploaded successfully!");
-      } else toast.error(data.message || "Upload failed");
+        toast.success("Image uploaded!");
+      } else toast.error("Image could not be uploaded. You can still save the product without one.");
     } catch (err: any) {
-      if (err?.name === "AbortError") toast.error("Upload timed out — please try again");
-      else toast.error("Upload failed");
+      if (err?.name === "AbortError") toast.error("Upload timed out. You can still save without an image.");
+      else toast.error("Image upload failed. You can still save the product without one.");
     } finally {
       clearTimeout(timeout);
       setUploadingImage(false);
@@ -153,9 +153,10 @@ export default function AdminProductsPage() {
   };
 
   const handleSave = async () => {
-    if (!form.name || !form.price || !form.categoryId) {
-      toast.error("Please fill in product name, price, and category"); return;
-    }
+    if (uploadingImage) { toast.error("Please wait — image is still uploading"); return; }
+    if (!form.name?.trim()) { toast.error("Product name is required"); return; }
+    if (!form.price || Number(form.price) <= 0) { toast.error("Please enter a valid price"); return; }
+    if (!form.categoryId) { toast.error("Please select a category"); return; }
     if (!validateVariants()) return;
 
     setSaving(true);
