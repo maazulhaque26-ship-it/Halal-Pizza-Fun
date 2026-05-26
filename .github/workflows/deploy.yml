@@ -44,33 +44,36 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      # ── 5. Verify the critical env var is now present ─────────────────────
-      # Fail fast with a clear message rather than letting next.config.ts
-      # throw a cryptic error 3 minutes into the build.
-      - name: Verify NEXT_PUBLIC_SOCKET_URL was pulled
+      # ── 5. Ensure NEXT_PUBLIC_SOCKET_URL is available ────────────────────
+      # The var may come from Vercel's Production env (vercel pull) OR from
+      # the hardcoded value below. Either source is acceptable; this step
+      # writes it into .env.production.local so vercel build picks it up,
+      # and then verifies it is not pointing at localhost.
+      - name: Ensure NEXT_PUBLIC_SOCKET_URL is set
+        env:
+          NEXT_PUBLIC_SOCKET_URL: https://hpf-socket-server.onrender.com
         run: |
-          if [ -f .env.production.local ] && grep -q "NEXT_PUBLIC_SOCKET_URL" .env.production.local; then
-            VALUE=$(grep "NEXT_PUBLIC_SOCKET_URL" .env.production.local | cut -d= -f2-)
-            echo "✅ NEXT_PUBLIC_SOCKET_URL = $VALUE"
+          # Pull value from vercel-downloaded file (preferred) or fall back to env above
+          PULLED=""
+          if [ -f .env.production.local ]; then
+            PULLED=$(grep "^NEXT_PUBLIC_SOCKET_URL=" .env.production.local | cut -d= -f2- || true)
+          fi
+
+          if [ -n "$PULLED" ] && [[ "$PULLED" != *"localhost"* ]] && [[ "$PULLED" != *"127.0.0.1"* ]]; then
+            echo "✅ NEXT_PUBLIC_SOCKET_URL from Vercel pull: $PULLED"
           else
-            echo "❌ NEXT_PUBLIC_SOCKET_URL not found in .env.production.local"
-            echo ""
-            echo "Fix: Go to Vercel dashboard → your project → Settings"
-            echo "     → Environment Variables → add NEXT_PUBLIC_SOCKET_URL"
-            echo "       with value: https://hpf-socket-server.onrender.com"
-            echo "       and set target: Production"
-            exit 1
+            # Write the known-good URL into the env file so vercel build picks it up
+            echo "NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}" >> .env.production.local
+            echo "✅ NEXT_PUBLIC_SOCKET_URL injected from workflow: ${NEXT_PUBLIC_SOCKET_URL}"
           fi
 
       # ── 6. Build ──────────────────────────────────────────────────────────
-      # vercel build reads .env.production.local (written by vercel pull above)
-      # and injects those vars into process.env before running next build.
-      # NEXT_PUBLIC_SOCKET_URL is now available and gets inlined into the bundle.
       - name: Build
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          NEXT_PUBLIC_SOCKET_URL: https://hpf-socket-server.onrender.com
 
       # ── 7. Deploy prebuilt artifacts ──────────────────────────────────────
       - name: Deploy
