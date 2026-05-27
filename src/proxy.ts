@@ -10,8 +10,9 @@ const CSRF_PROTECTED_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 // ─── Paths exempt from CSRF (NextAuth handles its own CSRF, public webhooks, etc.)
 const CSRF_EXEMPT_PREFIXES = [
-  "/api/auth/",       // NextAuth manages its own CSRF
-  "/api/csrf",        // token issuance endpoint itself
+  "/api/auth/",             // NextAuth manages its own CSRF
+  "/api/csrf",              // token issuance endpoint itself
+  "/api/emergency-reset",   // one-time recovery — DELETE after use
 ];
 
 function isCsrfExempt(pathname: string): boolean {
