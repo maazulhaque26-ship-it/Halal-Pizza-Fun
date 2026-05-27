@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Download, Bell, X } from "lucide-react";
 
+const FALLBACK_ICON = "/icons/icon-192x192.png";
+
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.replace(/=/g, "").length % 4)) % 4);
   const base64 = (base64String.replace(/=/g, "") + padding)
@@ -21,11 +23,25 @@ export function PwaManager() {
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [appLogoUrl, setAppLogoUrl] = useState<string>(FALLBACK_ICON);
   const isMounted = useRef(true);
 
   useEffect(() => {
     isMounted.current = true;
     return () => { isMounted.current = false; };
+  }, []);
+
+  // Fetch admin's uploaded logo to use in the install banner
+  useEffect(() => {
+    fetch("/api/settings", { cache: "no-store" })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          const logo = d.data?.mobileLogoUrl || d.data?.logoUrl;
+          if (logo && isMounted.current) setAppLogoUrl(logo);
+        }
+      })
+      .catch(() => {}); // Silently fall back to static icon
   }, []);
 
   useEffect(() => {
@@ -165,7 +181,15 @@ export function PwaManager() {
       {showInstallBanner && (
         <div className="fixed bottom-16 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-[#080d15]/95 backdrop-blur-md border border-white/10 p-4 rounded-2xl shadow-2xl z-50 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-5 duration-300">
           <div className="flex items-center gap-3">
-            <img src="/icons/icon-192x192.png" alt="App Icon" className="w-12 h-12 rounded-xl shadow-md shrink-0" />
+            {/* Logo — circular, always centered */}
+            <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-white/15 bg-[#0d1117] flex items-center justify-center shadow-md">
+              <img
+                src={appLogoUrl}
+                alt="App Icon"
+                className="w-full h-full object-cover object-center"
+                onError={e => { (e.currentTarget as HTMLImageElement).src = FALLBACK_ICON; }}
+              />
+            </div>
             <div>
               <h4 className="font-semibold text-sm text-white">Install HPF Partner App</h4>
               <p className="text-xs text-white/60">Get real-time order alerts &amp; native mobile experience.</p>

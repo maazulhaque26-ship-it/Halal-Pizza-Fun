@@ -141,7 +141,7 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: '/icons/icon-192x192.png',
+      icon: data.icon || '/icons/icon-192x192.png',
       badge: '/icons/maskable-icon.png',
       vibrate: data.urgency === 'urgent' ? [300, 100, 300, 100, 300] : [200, 100, 200],
       data: { url: data.url },

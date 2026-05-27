@@ -1,4 +1,5 @@
 import { User } from "@/lib/db/models/User";
+import { Settings } from "@/lib/db/models/Settings";
 import { connectDB } from "@/lib/db/mongoose";
 import { env } from "@/config/env";
 import webpush from "web-push";
@@ -60,6 +61,14 @@ export class NotificationService {
     try {
       await connectDB();
 
+      // Fetch the brand logo to include as notification icon
+      let notifIcon = "/icons/icon-192x192.png";
+      try {
+        const siteSettings = await Settings.findOne().select("mobileLogoUrl logoUrl").lean() as any;
+        const logo = siteSettings?.mobileLogoUrl || siteSettings?.logoUrl;
+        if (logo) notifIcon = logo;
+      } catch { /* fall back to static icon */ }
+
       const managers = await User.find({
         branchId,
         role: "BRANCH_MANAGER",
@@ -73,6 +82,7 @@ export class NotificationService {
         body: `Order #${orderId} — ₹${orderTotal.toFixed(2)} is waiting for your action.`,
         url: `/branch/dashboard`,
         urgency: orderTotal > 500 ? "urgent" : "normal",
+        icon: notifIcon,
       });
 
       for (const manager of managers) {
@@ -111,6 +121,7 @@ export class NotificationService {
           body: `Order #${orderId} (₹${orderTotal.toFixed(2)}) placed at branch ${branchId}`,
           url: `/admin/orders`,
           urgency: "normal",
+          icon: notifIcon,
         });
         for (const tokenStr of admin.notificationTokens) {
           try {
