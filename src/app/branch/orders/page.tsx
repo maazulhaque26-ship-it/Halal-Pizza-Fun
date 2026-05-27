@@ -175,12 +175,12 @@ export default function BranchOrdersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <div>
+        <div className="min-w-0">
           <h2 className="text-2xl font-black text-white">Live Orders</h2>
           <p className="text-white/40 mt-0.5">{filtered.length} orders</p>
         </div>
-        <button onClick={fetchOrders} className="flex items-center gap-2 px-4 py-2.5 bg-background border border-white/10 rounded-xl text-sm font-bold text-white/70 hover:bg-background transition-colors">
-          <RefreshCw className="w-4 h-4" /> Refresh
+        <button onClick={fetchOrders} className="flex items-center gap-2 px-3 sm:px-4 py-2.5 bg-background border border-white/10 rounded-xl text-sm font-bold text-white/70 hover:bg-background transition-colors shrink-0 ml-3">
+          <RefreshCw className="w-4 h-4" /> <span className="hidden sm:inline">Refresh</span>
         </button>
       </div>
 
@@ -248,13 +248,13 @@ export default function BranchOrdersPage() {
       {/* ── Order Detail Modal ── */}
       <AnimatePresence>
         {selected && !showTransfer && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelected(null)}>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setSelected(null)}>
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               onClick={e => e.stopPropagation()}
-              className="bg-background rounded-3xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
+              className="w-full h-full sm:h-auto bg-background sm:rounded-3xl rounded-none shadow-2xl sm:max-w-lg sm:max-h-[92vh] overflow-y-auto">
 
               {/* Header */}
-              <div className="p-5 border-b border-white/8 sticky top-0 bg-background z-10 rounded-t-3xl">
+              <div className="p-5 border-b border-white/8 sticky top-0 bg-background z-10 sm:rounded-t-3xl">
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="text-xl font-black text-white">{selected.orderId}</h3>
                   <div className="flex items-center gap-2">
@@ -371,10 +371,10 @@ export default function BranchOrdersPage() {
       {/* ── Transfer Modal ── */}
       <AnimatePresence>
         {selected && showTransfer && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowTransfer(false)}>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowTransfer(false)}>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
               onClick={e => e.stopPropagation()}
-              className="bg-background rounded-3xl shadow-2xl w-full max-w-md p-6">
+              className="w-full sm:max-w-md bg-background sm:rounded-3xl rounded-t-3xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="font-black text-white text-lg flex items-center gap-2"><ArrowRightLeft className="w-5 h-5 text-purple-500" /> Transfer Order</h3>

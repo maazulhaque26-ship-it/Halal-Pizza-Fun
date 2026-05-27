@@ -121,9 +121,9 @@ export default function AdminCategoriesPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.08)" }}
+            className="w-full h-full sm:h-auto sm:rounded-3xl rounded-none shadow-2xl sm:max-w-md overflow-hidden" style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.08)" }}
           >
             <div className="flex items-center justify-between p-6 border-b border-white/8">
               <h3 className="text-xl font-black text-white">{editing ? "Edit Category" : "Add Category"}</h3>

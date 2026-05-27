@@ -182,13 +182,13 @@ export default function AdminSettingsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h2 className="text-2xl font-black text-white">Site Settings</h2>
           <p className="text-gray-400 mt-1 text-sm">Control every aspect of your platform</p>
         </div>
         <button onClick={handleSave} disabled={saving}
-          className="flex items-center gap-2 bg-primary text-black px-6 py-3 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25 disabled:opacity-60">
+          className="flex items-center gap-2 bg-primary text-black px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25 disabled:opacity-60 self-start sm:self-auto">
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           {saving ? "Saving…" : "Save Changes"}
         </button>
@@ -812,11 +812,11 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* Floating Save */}
-      <div className="fixed bottom-8 right-8">
+      <div className="fixed bottom-6 right-4 sm:bottom-8 sm:right-8 z-40">
         <button onClick={handleSave} disabled={saving}
-          className="flex items-center gap-2 bg-primary text-black px-6 py-4 rounded-2xl font-bold shadow-2xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-60">
-          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-          {saving ? "Saving…" : "Save All Changes"}
+          className="flex items-center gap-2 bg-primary text-black px-5 sm:px-6 py-3.5 sm:py-4 rounded-2xl font-bold shadow-2xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-60 text-sm sm:text-base">
+          {saving ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : <Save className="w-4 h-4 sm:w-5 sm:h-5" />}
+          {saving ? "Saving…" : "Save All"}
         </button>
       </div>
     </div>

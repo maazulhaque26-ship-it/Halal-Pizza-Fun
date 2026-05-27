@@ -333,7 +333,7 @@ export default function RestaurantGrid({ products }: RestaurantGridProps) {
     products && products.length > 0 ? products : FALLBACK_PRODUCTS;
 
   return (
-    <section className="py-24 px-6 bg-background">
+    <section className="py-16 md:py-24 px-4 sm:px-6 bg-background">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <motion.div
@@ -361,7 +361,7 @@ export default function RestaurantGrid({ products }: RestaurantGridProps) {
         </motion.div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {displayProducts.map((product, i) => (
             <ProductCard key={product._id} product={product} index={i} />
           ))}

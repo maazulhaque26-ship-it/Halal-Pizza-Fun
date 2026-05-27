@@ -436,13 +436,13 @@ export default function Navbar({ siteName = "Halal Pizza Fun", logoUrl, mobileLo
       {/* ── Location Selector Modal ── */}
       <AnimatePresence>
         {isLocationModalOpen && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsLocationModalOpen(false)}>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setIsLocationModalOpen(false)}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={e => e.stopPropagation()}
-              className="rounded-3xl shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden"
+              className="w-full h-full sm:h-auto sm:max-w-xl sm:max-h-[85vh] flex flex-col overflow-hidden sm:rounded-3xl rounded-none shadow-2xl"
               style={{ background: "linear-gradient(145deg, rgba(10,18,35,0.98), rgba(5,13,26,0.99))", border: "1px solid rgba(255,255,255,0.08)" }}
             >
               {/* Modal Header */}

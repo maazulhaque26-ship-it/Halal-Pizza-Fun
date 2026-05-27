@@ -83,12 +83,12 @@ export default function OffersPage() {
       ) : (
         <>
           {/* Hero Header */}
-          <section className="relative pt-36 pb-20 overflow-hidden bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(212,175,55,0.15),rgba(255,255,255,0))]">
-            <div className="max-w-6xl mx-auto px-6 text-center relative z-10">
+          <section className="relative pt-28 pb-14 md:pt-36 md:pb-20 overflow-hidden bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(212,175,55,0.15),rgba(255,255,255,0))]">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center relative z-10">
               <span className="text-primary font-black tracking-widest text-xs uppercase px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
                 SIGNATURE SAVINGS
               </span>
-              <h1 className="text-5xl md:text-7xl font-black mt-6 mb-8 tracking-tight leading-none text-white">
+              <h1 className="text-3xl sm:text-5xl md:text-7xl font-black mt-6 mb-6 md:mb-8 tracking-tight leading-none text-white">
                 {heroTitle.split("Gourmet").map((part: string, idx: number, arr: string[]) => (
                   <span key={idx}>
                     {idx === arr.length - 1 ? (
@@ -106,7 +106,7 @@ export default function OffersPage() {
           </section>
 
           {/* Offers Grid */}
-          <section className="py-12 max-w-6xl mx-auto px-6 pb-32">
+          <section className="py-8 md:py-12 max-w-6xl mx-auto px-4 sm:px-6 pb-24 md:pb-32">
             {coupons.length === 0 ? (
               <div className="text-center py-20 text-white/30">
                 <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-30" />

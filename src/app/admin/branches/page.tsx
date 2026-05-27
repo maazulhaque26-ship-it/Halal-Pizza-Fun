@@ -122,13 +122,13 @@ export default function AdminBranchesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h2 className="text-2xl font-black text-white">Branch Management</h2>
           <p className="text-gray-400 mt-1 text-sm">{branches.length} branches configured</p>
         </div>
         <button onClick={openNew}
-          className="flex items-center gap-2 bg-primary text-black px-5 py-3 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25">
+          className="flex items-center gap-2 bg-primary text-black px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25 self-start sm:self-auto">
           <Plus className="w-4 h-4" /> Add Branch
         </button>
       </div>
@@ -232,9 +232,9 @@ export default function AdminBranchesPage() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden relative " style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.08)" }} >
+            className="w-full h-full sm:h-auto sm:rounded-3xl rounded-none shadow-2xl sm:max-w-4xl sm:max-h-[90vh] overflow-y-auto overflow-x-hidden relative" style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.08)" }} >
             <div className="flex items-center justify-between p-6 border-b border-white/8">
               <h3 className="text-xl font-black text-white">{editing ? "Edit Branch" : "Add Branch"}</h3>
               <button onClick={() => setShowModal(false)} className="p-2 hover:bg-white/5 rounded-xl transition-colors">

@@ -193,7 +193,7 @@ export default function AboutUsPage() {
       ) : (
         <>
           {/* ── Hero ── */}
-          <section className="relative pt-36 pb-24 overflow-hidden">
+          <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(212,175,55,0.12),transparent)]" />
             <div
               className="absolute inset-0 opacity-[0.015]"
@@ -202,7 +202,7 @@ export default function AboutUsPage() {
                 backgroundSize: "60px 60px",
               }}
             />
-            <div className="max-w-6xl mx-auto px-6 text-center relative z-10">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center relative z-10">
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -219,7 +219,7 @@ export default function AboutUsPage() {
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="text-5xl md:text-7xl font-black mt-4 mb-6 tracking-tight leading-[1.05]"
+                className="text-3xl sm:text-5xl md:text-7xl font-black mt-4 mb-6 tracking-tight leading-[1.05]"
               >
                 <span className="text-white">{heroTitle.split(" ").slice(0, -2).join(" ")}</span>{" "}
                 <em className="text-gradient not-italic">{heroTitle.split(" ").slice(-2).join(" ")}</em>
@@ -261,10 +261,10 @@ export default function AboutUsPage() {
           )}
 
           {/* ── Founder Section ── */}
-          <section className="relative py-28 overflow-hidden">
+          <section className="relative py-16 md:py-28 overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(212,175,55,0.04),transparent_60%)]" />
-            <div className="max-w-6xl mx-auto px-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 items-center">
 
                 {/* Founder Image */}
                 <motion.div
@@ -399,7 +399,7 @@ export default function AboutUsPage() {
           </section>
 
           {/* ── Core Values ── */}
-          <section className="py-24 max-w-6xl mx-auto px-6">
+          <section className="py-16 md:py-24 max-w-6xl mx-auto px-4 sm:px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -446,8 +446,8 @@ export default function AboutUsPage() {
           </section>
 
           {/* ── Gallery ── */}
-          <section className="py-24" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-            <div className="max-w-6xl mx-auto px-6">
+          <section className="py-16 md:py-24" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+            <div className="max-w-6xl mx-auto px-4 sm:px-6">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -522,9 +522,9 @@ export default function AboutUsPage() {
           )}
 
           {/* ── CTA ── */}
-          <section className="relative py-24 text-center overflow-hidden">
+          <section className="relative py-16 md:py-24 text-center overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_60%)]" />
-            <div className="relative max-w-4xl mx-auto px-6">
+            <div className="relative max-w-4xl mx-auto px-4 sm:px-6">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}

@@ -173,7 +173,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative py-24 px-6 overflow-hidden">
+    <section ref={sectionRef} className="relative py-16 md:py-24 px-4 sm:px-6 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-linear-to-b from-background via-[#070f20] to-background" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.04),transparent_70%)]" />
@@ -233,7 +233,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
         </div>
 
         {/* Category Grid */}
-        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4">
+        <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4">
           {displayCategories.map((cat, index) => (
             <CategoryCard key={cat._id} cat={cat} index={index} />
           ))}

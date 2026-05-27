@@ -311,7 +311,7 @@ function MenuContent() {
       />
 
       {/* ── Premium Header ── */}
-      <div className="relative pt-32 pb-20 px-6 overflow-hidden">
+      <div className="relative pt-28 pb-14 md:pt-32 md:pb-20 px-4 sm:px-6 overflow-hidden">
         <div className="absolute inset-0 bg-linear-to-b from-[#070f20] to-background" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.08),transparent_60%)]" />
         <motion.div
@@ -333,7 +333,7 @@ function MenuContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl md:text-6xl font-black text-white mb-3 tracking-tight"
+            className="text-3xl md:text-6xl font-black text-white mb-3 tracking-tight"
           >
             Explore{" "}
             <span className="text-gradient italic">Everything</span>
@@ -375,7 +375,7 @@ function MenuContent() {
       </div>
 
       {/* ── Filters & Grid ── */}
-      <div className="max-w-7xl mx-auto px-6 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
         {/* Category Pills */}
         <div className="flex gap-2 overflow-x-auto pb-4 mb-2 items-center scrollbar-none">
           <button

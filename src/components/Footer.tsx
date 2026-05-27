@@ -115,7 +115,7 @@ export default function Footer({
         }}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
         {/* PWA Install Banner */}
         {mounted && !isPwa && (
           <motion.div
@@ -155,7 +155,7 @@ export default function Footer({
         )}
 
         {/* Main Footer Grid */}
-        <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12">
+        <div className="py-12 md:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12">
           {/* Brand Column */}
           <div className="lg:col-span-5">
             <Link href={ROUTES.HOME} className="inline-flex items-center gap-3 mb-6 group">

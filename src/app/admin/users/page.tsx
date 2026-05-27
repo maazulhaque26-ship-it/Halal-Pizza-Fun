@@ -103,7 +103,7 @@ export default function AdminUsersPage() {
               <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">{users.filter(u => u.role !== ROLES.CUSTOMER).length} Staff</span>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
+              <table className="w-full text-left min-w-[700px]">
                 <thead>
                   <tr className="bg-background border-b border-white/8">
                     {["Name", "Email", "Role", "Assigned Branch", "Joined", "Actions"].map(h => (
@@ -161,9 +161,9 @@ export default function AdminUsersPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden " style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.08)" }} >
+            className="w-full h-full sm:h-auto sm:rounded-3xl rounded-none shadow-2xl sm:max-w-lg overflow-hidden overflow-y-auto" style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.08)" }} >
             <div className="flex items-center justify-between p-6 border-b border-white/8">
               <h3 className="text-xl font-black text-white">{form._id ? "Edit Authority" : "Add New Authority"}</h3>
               <button onClick={() => setShowModal(false)} className="p-2 hover:bg-white/5 rounded-xl transition-colors">

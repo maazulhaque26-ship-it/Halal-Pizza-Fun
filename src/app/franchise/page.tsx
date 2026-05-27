@@ -129,14 +129,14 @@ export default function FranchisePage() {
       <Navbar />
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="relative pt-36 pb-24 overflow-hidden">
+      <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(212,175,55,0.22),transparent)] pointer-events-none" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_80%_80%,rgba(120,60,200,0.12),transparent)] pointer-events-none" />
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
           <span className="inline-block text-primary font-black tracking-widest text-xs uppercase px-4 py-1.5 bg-primary/10 rounded-full border border-primary/25 mb-6">
             {f("heroTag","FRANCHISE OPPORTUNITY")}
           </span>
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-none mb-6 text-white">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-none mb-6 text-white">
             {f("heroTitle","Grow With Halal Pizza Fun")}
           </h1>
           <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-4 leading-relaxed font-medium">
@@ -145,7 +145,7 @@ export default function FranchisePage() {
           <p className="text-sm text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">
             {f("heroDesc")}
           </p>
-          <div className="flex flex-wrap gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
             <a href="#apply-form"
               className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-black font-black px-7 py-3.5 rounded-2xl transition-all shadow-lg shadow-primary/30 text-sm">
               {f("heroCta1","Apply for Franchise")} <ArrowRight className="w-4 h-4" />
@@ -290,7 +290,7 @@ export default function FranchisePage() {
       </section>
 
       {/* ── Application Form ──────────────────────────────────────── */}
-      <section className="py-20 max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+      <section className="py-16 md:py-20 max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start">
         <div>
           <span className="text-primary font-bold text-xs uppercase tracking-widest">Apply Now</span>
           <h2 className="text-3xl md:text-4xl font-black mt-3 mb-4">Start Your Franchise Journey</h2>
@@ -313,7 +313,7 @@ export default function FranchisePage() {
             <h3 className="text-2xl font-black text-white mb-2">Request Information</h3>
             <p className="text-white/50 text-sm mb-7">Take the first step towards owning a Halal Pizza Fun kitchen.</p>
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {(["First Name *", "Last Name"] as const).map((label, i) => (
                   <div key={i}>
                     <label className="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2">{label}</label>
@@ -324,7 +324,7 @@ export default function FranchisePage() {
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {(["email", "phone"] as const).map((field, i) => (
                   <div key={i}>
                     <label className="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2">{field === "email" ? "Email *" : "Phone *"}</label>

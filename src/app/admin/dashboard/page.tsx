@@ -242,7 +242,7 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[600px]">
               <thead>
                 <tr className="border-b border-white/5">
                   {["Order ID", "Customer", "Branch", "Status", "Amount", "Time"].map((h) => (

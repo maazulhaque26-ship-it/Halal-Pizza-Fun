@@ -92,15 +92,14 @@ export default function Hero({
       {/* ── Content ── */}
       <motion.div
         style={{ opacity }}
-        className="relative z-10 max-w-5xl w-full px-6 text-center pt-28 pb-16 md:pt-32 md:pb-20"
+        className="relative z-10 max-w-5xl w-full px-4 sm:px-6 text-center pt-24 pb-16 md:pt-32 md:pb-20"
       >
         {/* Main Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="font-playfair font-black text-white mb-6 tracking-normal leading-[1.1]"
-          style={{ fontSize: "clamp(2.4rem, 6.5vw, 5.25rem)" }}
+          className="font-playfair font-black text-white mb-6 tracking-normal leading-[1.1] text-4xl md:text-6xl lg:text-8xl"
         >
           {title === DEFAULT_TITLE ? (
             <>
@@ -141,7 +140,7 @@ export default function Hero({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="relative max-w-2xl mx-auto mb-10"
+          className="relative w-full max-w-2xl mx-auto mb-10"
         >
           <div className="glass-card rounded-2xl p-2 shadow-2xl flex flex-col sm:flex-row items-center gap-2 border border-white/8 backdrop-blur-xl">
             <div className="flex items-center gap-3 px-4 py-3 flex-1 w-full">
@@ -171,7 +170,7 @@ export default function Hero({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="flex flex-wrap justify-center gap-6 md:gap-12"
+          className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-12"
         >
           {stats.map(({ label, value }, i) => {
             const Icon = STAT_ICONS[i % STAT_ICONS.length];

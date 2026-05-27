@@ -250,13 +250,13 @@ export default function AdminOrdersPage() {
       {/* ── Order Detail Modal ──────────────────────────────────────────────── */}
       <AnimatePresence>
         {selected && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelected(null)}>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setSelected(null)}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={e => e.stopPropagation()}
-              className="rounded-3xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto"
+              className="w-full h-full sm:h-auto sm:rounded-3xl rounded-none shadow-2xl sm:max-w-lg max-h-full sm:max-h-[92vh] overflow-y-auto"
               style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.08)" }}
             >
               {/* Modal Header */}

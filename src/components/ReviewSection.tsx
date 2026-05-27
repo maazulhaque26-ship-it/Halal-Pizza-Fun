@@ -141,7 +141,7 @@ export default function ReviewSection() {
   };
 
   return (
-    <section className="relative py-24 px-6 overflow-hidden">
+    <section className="relative py-16 md:py-24 px-4 sm:px-6 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-linear-to-b from-[#070f20] via-background to-[#070f20]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.04),transparent_55%)]" />
@@ -190,7 +190,7 @@ export default function ReviewSection() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl font-black text-sm self-start md:self-auto transition-all duration-300"
+            className="flex items-center gap-2 px-5 py-3 rounded-xl font-black text-sm self-start md:self-auto transition-all duration-300 shrink-0"
             style={{
               background: showForm ? "rgba(212,175,55,0.15)" : "linear-gradient(135deg, #D4AF37, #C5A028)",
               color: showForm ? "#D4AF37" : "#000",

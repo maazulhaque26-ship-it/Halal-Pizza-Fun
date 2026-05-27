@@ -66,7 +66,7 @@ export default function BranchSection({ branches }: BranchSectionProps) {
   };
 
   return (
-    <section className="relative py-24 px-6 overflow-hidden">
+    <section className="relative py-16 md:py-24 px-4 sm:px-6 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-linear-to-b from-[#070f20] via-background to-[#070f20]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_right,rgba(212,175,55,0.04),transparent_60%)]" />
