@@ -80,13 +80,13 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h2 className="text-2xl font-black text-white">Authorities Management</h2>
           <p className="text-gray-400 mt-1 text-sm">{users.filter(u => u.role !== ROLES.CUSTOMER).length} staff members</p>
         </div>
         <button onClick={() => { setForm(empty); setShowModal(true); }}
-          className="flex items-center gap-2 bg-primary text-black px-5 py-3 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25">
+          className="flex items-center gap-2 bg-primary text-black px-5 py-3 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25 self-start sm:self-auto">
           <Plus className="w-4 h-4" /> Add User
         </button>
       </div>

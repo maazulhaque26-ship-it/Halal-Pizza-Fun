@@ -164,12 +164,12 @@ export default function AdminOrdersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h2 className="text-2xl font-black text-white">Orders</h2>
           <p className="text-gray-400 mt-1 text-sm">{filtered.length} orders shown</p>
         </div>
-        <button onClick={fetchOrders} className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white/70 hover:bg-white/10 transition-colors">
+        <button onClick={fetchOrders} className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white/70 hover:bg-white/10 transition-colors self-start sm:self-auto">
           <RefreshCw className="w-4 h-4" /> Refresh
         </button>
       </div>

@@ -1,110 +1,96 @@
 /**
- * One-shot: pushes all .env.local vars into the Vercel project via REST API.
+ * Pushes all .env.local vars into the linked Vercel project via REST API.
  * Run: node scripts/vercel-env-push.js
  */
 const fs = require("fs");
 const path = require("path");
 
-const TOKEN    = "vca_4g01I69MueSvSt71Dg06eYx1QbSLdGPfcE5d9Qkn3RnaGGRBTd11ymXB";
-const PROJECT  = "prj_FcVDar9vZA1qv29Y9W7hB9AdyBo8";
-const TEAM     = "team_vU4cTMgLj0VGFHlCeMW3wggt";
-const ENV_FILE = path.join(__dirname, "..", ".env.local");
-const TARGET   = ["production"];
+// Read token from Vercel auth file
+let TOKEN, PROJECT, TEAM;
+try {
+  const auth = JSON.parse(fs.readFileSync(
+    path.join(process.env.APPDATA || process.env.HOME, "xdg.data/com.vercel.cli/auth.json"), "utf8"
+  ));
+  TOKEN = auth.token;
+} catch {
+  TOKEN = process.env.VERCEL_TOKEN;
+}
 
-// Public vars are baked at build time — use plain type
-const PUBLIC_PREFIXES = ["NEXT_PUBLIC_", "NODE_ENV"];
+try {
+  const proj = JSON.parse(fs.readFileSync(
+    path.join(__dirname, "..", ".vercel", "project.json"), "utf8"
+  ));
+  PROJECT = proj.projectId;
+  TEAM    = proj.orgId;
+} catch {
+  console.error("No .vercel/project.json found"); process.exit(1);
+}
+
+const ENV_FILE = path.join(__dirname, "..", ".env.local");
+const TARGET   = ["production", "preview"];
+const PUBLIC   = ["NEXT_PUBLIC_", "NODE_ENV"];
 
 function parseEnv(file) {
-  const lines = fs.readFileSync(file, "utf8").split("\n");
   const vars = {};
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const eqIdx = trimmed.indexOf("=");
-    if (eqIdx === -1) continue;
-    const key = trimmed.slice(0, eqIdx).trim();
-    let value = trimmed.slice(eqIdx + 1).trim();
-    // Strip surrounding quotes
-    if ((value.startsWith('"') && value.endsWith('"')) ||
-        (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1);
-    }
-    // Skip masked placeholders
-    if (value === "**********" || value === "") continue;
-    vars[key] = value;
+  for (const line of fs.readFileSync(file, "utf8").split("\n")) {
+    const t = line.trim();
+    if (!t || t.startsWith("#")) continue;
+    const eq = t.indexOf("=");
+    if (eq === -1) continue;
+    const key = t.slice(0, eq).trim();
+    let val = t.slice(eq + 1).trim();
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'")))
+      val = val.slice(1, -1);
+    if (val && val !== "**********") vars[key] = val;
   }
   return vars;
 }
 
-async function upsertVar(key, value) {
-  const type = PUBLIC_PREFIXES.some(p => key.startsWith(p)) ? "plain" : "encrypted";
-
-  // First try to create; if conflict (409) update instead
-  const createRes = await fetch(
-    `https://api.vercel.com/v10/projects/${PROJECT}/env?teamId=${TEAM}`,
-    {
-      method: "POST",
+async function upsert(key, value) {
+  const type = PUBLIC.some(p => key.startsWith(p)) ? "plain" : "encrypted";
+  const r = await fetch(`https://api.vercel.com/v10/projects/${PROJECT}/env?teamId=${TEAM}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ key, value, type, target: TARGET }),
+  });
+  const b = await r.json();
+  if (r.ok) { console.log("  ✓", key); return; }
+  if (b.error?.code === "ENV_ALREADY_EXISTS") {
+    // patch existing
+    const list = await fetch(`https://api.vercel.com/v10/projects/${PROJECT}/env?teamId=${TEAM}`, {
+      headers: { Authorization: `Bearer ${TOKEN}` }
+    }).then(r => r.json());
+    const ex = (list.envs || []).find(e => e.key === key && e.target.some(t => TARGET.includes(t)));
+    if (!ex) { console.log("  ?", key, "(conflict but not found)"); return; }
+    const p = await fetch(`https://api.vercel.com/v10/projects/${PROJECT}/env/${ex.id}?teamId=${TEAM}`, {
+      method: "PATCH",
       headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ key, value, type, target: TARGET }),
-    }
-  );
-
-  if (createRes.ok) {
-    console.log(`  ✓ created  ${key}`);
+      body: JSON.stringify({ value, type, target: TARGET }),
+    });
+    if (p.ok) console.log("  ↺", key); else console.log("  ✗", key, (await p.json()).error?.message);
     return;
   }
-
-  const createBody = await createRes.json();
-
-  if (createRes.status === 400 && createBody.error?.code === "ENV_ALREADY_EXISTS") {
-    // Fetch existing ID then patch
-    const listRes = await fetch(
-      `https://api.vercel.com/v10/projects/${PROJECT}/env?teamId=${TEAM}`,
-      { headers: { Authorization: `Bearer ${TOKEN}` } }
-    );
-    const listBody = await listRes.json();
-    const existing = (listBody.envs || []).find(
-      e => e.key === key && e.target.includes("production")
-    );
-    if (!existing) { console.log(`  ? skipped  ${key} (not found after conflict)`); return; }
-
-    const patchRes = await fetch(
-      `https://api.vercel.com/v10/projects/${PROJECT}/env/${existing.id}?teamId=${TEAM}`,
-      {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ value, type, target: TARGET }),
-      }
-    );
-    if (patchRes.ok) {
-      console.log(`  ↺ updated  ${key}`);
-    } else {
-      const pb = await patchRes.json();
-      console.log(`  ✗ failed   ${key}: ${JSON.stringify(pb.error)}`);
-    }
-    return;
-  }
-
-  console.log(`  ✗ failed   ${key}: ${JSON.stringify(createBody.error)}`);
+  console.log("  ✗", key, b.error?.message);
 }
 
 async function main() {
   const vars = parseEnv(ENV_FILE);
 
-  // Override localhost URLs with production placeholders (user will update after first deploy)
-  vars["NEXTAUTH_URL"]           = "https://food-delivery-maazulhaque26-ship-its-projects.vercel.app";
-  vars["NEXT_PUBLIC_APP_URL"]    = "https://food-delivery-maazulhaque26-ship-its-projects.vercel.app";
-  vars["NEXT_PUBLIC_SOCKET_URL"] = "https://hpf-socket-server.onrender.com";
+  // Production overrides
+  const PROD_URL    = "https://halal-pizza-fun.vercel.app";
+  const SOCKET_URL  = "https://hpf-socket-server.onrender.com";
+  const SOCKET_KEY  = "N0GB3olCdF9WjrrecHLv8Aawr/bXn3Prss3HB/hN5L0=";
+
   vars["NODE_ENV"]               = "production";
-  vars["VAPID_SUBJECT"]          = "mailto:maazulhaque26@gmail.com";
+  vars["NEXT_PUBLIC_APP_URL"]    = PROD_URL;
+  vars["NEXTAUTH_URL"]           = PROD_URL;
+  vars["NEXT_PUBLIC_SOCKET_URL"] = SOCKET_URL;
+  vars["SOCKET_API_KEY"]         = SOCKET_KEY;
+  vars["VAPID_SUBJECT"]          = "mailto:pizzafunindia@gmail.com";
 
-  console.log(`\nPushing ${Object.keys(vars).length} env vars to Vercel project [${PROJECT}]...\n`);
-
-  for (const [key, value] of Object.entries(vars)) {
-    await upsertVar(key, value);
-  }
-
-  console.log("\nDone. Remember to update NEXTAUTH_URL and NEXT_PUBLIC_APP_URL after your first deploy.");
+  console.log(`\nPushing ${Object.keys(vars).length} env vars → ${PROJECT}\n`);
+  for (const [k, v] of Object.entries(vars)) await upsert(k, v);
+  console.log("\nDone.");
 }
 
 main().catch(console.error);

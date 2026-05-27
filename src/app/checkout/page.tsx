@@ -329,7 +329,7 @@ export default function CheckoutPage() {
         onError={() => toast.error("Unable to load payment gateway")}
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-32 pb-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 sm:pt-32 pb-24">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -349,31 +349,35 @@ export default function CheckoutPage() {
               </h2>
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.productId} className="flex gap-4 items-center">
-                    <img src={item.image} alt={item.name} className="w-16 h-16 rounded-2xl object-cover shrink-0" />
+                  <div key={item.productId} className="flex gap-3 items-start">
+                    <img src={item.image} alt={item.name} className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl object-cover shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-white line-clamp-1">{item.name}</p>
-                      <p className="text-sm text-white/40">₹{item.price} each</p>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-bold text-white text-sm line-clamp-2 leading-tight">{item.name}</p>
+                        <button onClick={() => removeItem(item.productId)} className="text-red-400 hover:text-red-500 p-1 shrink-0 -mt-0.5 active:scale-90 transition-transform">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-white/40 mt-0.5">₹{item.price} each</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => item.quantity > 1 ? updateQuantity(item.productId, item.quantity - 1) : removeItem(item.productId)}
+                            className="w-7 h-7 rounded-full bg-white/8 hover:bg-white/15 flex items-center justify-center active:scale-90 transition-transform"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="w-6 text-center font-bold text-white/90 text-sm">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                            className="w-7 h-7 rounded-full bg-white/8 hover:bg-white/15 flex items-center justify-center active:scale-90 transition-transform"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <p className="font-black text-white text-sm">₹{(item.price * item.quantity).toFixed(2)}</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => item.quantity > 1 ? updateQuantity(item.productId, item.quantity - 1) : removeItem(item.productId)}
-                        className="w-8 h-8 rounded-full bg-white/8 hover:bg-white/15 flex items-center justify-center"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="w-6 text-center font-bold text-white/90">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                        className="w-8 h-8 rounded-full bg-white/8 hover:bg-white/15 flex items-center justify-center"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
-                    <p className="font-black text-white w-16 text-right">₹{(item.price * item.quantity).toFixed(2)}</p>
-                    <button onClick={() => removeItem(item.productId)} className="text-red-400 hover:text-red-600 p-1">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 ))}
               </div>
