@@ -34,9 +34,9 @@ export default function BranchLayout({ children }: { children: React.ReactNode }
       router.push(`${ROUTES.AUTH.LOGIN}?from=${encodeURIComponent(pathname)}`);
     }
     if (status === "authenticated" &&
-      session.user.role !== ROLES.BRANCH_MANAGER &&
-      session.user.role !== ROLES.MANAGER &&
-      session.user.role !== ROLES.SUPER_ADMIN) {
+      session?.user?.role !== ROLES.BRANCH_MANAGER &&
+      session?.user?.role !== ROLES.MANAGER &&
+      session?.user?.role !== ROLES.SUPER_ADMIN) {
       router.push(ROUTES.AUTH.LOGIN + "?reason=unauthorized");
     }
   }, [status, session, router, pathname]);

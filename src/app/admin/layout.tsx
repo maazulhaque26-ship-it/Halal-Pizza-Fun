@@ -56,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (status === "unauthenticated") {
       router.push(`${ROUTES.AUTH.LOGIN}?from=${encodeURIComponent(pathname)}`);
     }
-    if (status === "authenticated" && session.user.role !== ROLES.SUPER_ADMIN) {
+    if (status === "authenticated" && session?.user?.role !== ROLES.SUPER_ADMIN) {
       router.push(ROUTES.AUTH.LOGIN + "?reason=unauthorized");
     }
   }, [status, session, router, pathname]);
