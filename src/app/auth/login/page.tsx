@@ -65,7 +65,7 @@ export default function LoginPage() {
       });
 
       if (!result?.ok || result.error) {
-        setError(result?.error || "Invalid email or password. Please try again.");
+        setError("Invalid email or password. Please try again.");
         return;
       }
 

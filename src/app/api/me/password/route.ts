@@ -23,19 +23,28 @@ export async function POST(req: Request) {
     }
 
     await connectDB();
-    const user = await User.findById(session.user.id).select("+password");
+
+    // Load user with password for verification only
+    const user = await User.findById(session.user.id).select("+password").lean();
     if (!user) return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
 
-    const match = await bcrypt.compare(currentPassword, user.password || "");
+    const match = await bcrypt.compare(currentPassword, (user as any).password || "");
     if (!match) {
       return NextResponse.json({ success: false, message: "Current password is incorrect" }, { status: 400 });
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
+    // Use findByIdAndUpdate to avoid Mongoose document lifecycle issues
+    // (bypasses pre-save hooks, validation, and document state problems)
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await User.findByIdAndUpdate(
+      session.user.id,
+      { $set: { password: newHash } },
+      { runValidators: false }
+    );
 
     return NextResponse.json({ success: true, message: "Password updated successfully" });
   } catch (error: any) {
+    console.error("[/api/me/password]", error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
