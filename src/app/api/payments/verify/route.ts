@@ -14,6 +14,9 @@ import { ProductVariant } from "@/lib/db/models/ProductVariant";
 import { connectDB } from "@/lib/db/mongoose";
 import { BranchService } from "@/lib/services/BranchService";
 import { getSettings } from "@/lib/services/SettingsService";
+import { sendEmail, getBranding } from "@/lib/email";
+import { buildOrderConfirmationEmail } from "@/lib/email/templates/orderConfirmation";
+import { buildAdminOrderAlertEmail } from "@/lib/email/templates/adminOrderAlert";
 
 const verifySchema = z.object({
   razorpay_order_id: z.string().min(1),
@@ -297,6 +300,74 @@ export async function POST(req: Request) {
       orderTotal: order.total,
       order: orderObj,
     });
+
+    // ── Fire-and-forget order confirmation emails (online payment) ───────────
+    if (session.user.email) {
+      const branding = getBranding(settings);
+      const emailItems = snapshot.items.map((item: any) => ({
+        name: (productMap.get(item.productId.toString()) as any)?.name ?? "Item",
+        variantName: item.variantName,
+        quantity: item.quantity,
+        price: item.price,
+        selectedAddons: item.selectedAddons ?? [],
+      }));
+      const addr = snapshot.deliveryAddress;
+      const emailDeliveryAddress = {
+        fullName: addr.fullName,
+        phone: addr.phone,
+        houseNumber: addr.houseNumber,
+        floor: addr.floor,
+        street: addr.street,
+        landmark: addr.landmark,
+        city: addr.city,
+        state: addr.state,
+        pincode: addr.pincode,
+        deliveryInstructions: addr.deliveryInstructions,
+      };
+      Promise.all([
+        sendEmail({
+          to: session.user.email,
+          subject: `Order Confirmed — ${order.orderId} | ${branding.appName}`,
+          html: buildOrderConfirmationEmail({
+            branding,
+            customerName: addr.fullName,
+            orderId: order.orderId,
+            orderStatus: "PLACED",
+            items: emailItems,
+            subTotal: snapshot.subTotal,
+            tax: snapshot.tax,
+            deliveryFee: snapshot.deliveryFee,
+            total: snapshot.total,
+            paymentMethod: "Online Payment",
+            deliveryAddress: emailDeliveryAddress,
+            estimatedMinutes: 45,
+            trackUrl: `${branding.websiteUrl}/orders`,
+          }),
+        }),
+        sendEmail({
+          to: branding.supportEmail || branding.appName,
+          subject: `💳 New Online Order — ${order.orderId} (${addr.city})`,
+          html: buildAdminOrderAlertEmail({
+            branding,
+            orderId: order.orderId,
+            orderStatus: "PLACED",
+            customerName: addr.fullName,
+            customerEmail: session.user.email,
+            customerPhone: addr.phone,
+            items: emailItems,
+            subTotal: snapshot.subTotal,
+            tax: snapshot.tax,
+            deliveryFee: snapshot.deliveryFee,
+            total: snapshot.total,
+            paymentMethod: "Online Payment",
+            paymentStatus: "PAID",
+            deliveryAddress: emailDeliveryAddress,
+            specialInstructions: snapshot.specialInstructions,
+            ordersAdminUrl: `${branding.websiteUrl}/branch`,
+          }),
+        }),
+      ]).catch((err) => console.error("[OrderEmail] Failed to send online confirmation:", err));
+    }
 
     return NextResponse.json({
       success: true,

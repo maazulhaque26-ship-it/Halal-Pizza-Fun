@@ -14,7 +14,7 @@ export default function AppSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
               Get the <span className="text-primary">HPF</span> App
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl">

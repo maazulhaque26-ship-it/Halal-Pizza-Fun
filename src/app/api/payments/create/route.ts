@@ -14,6 +14,9 @@ import { connectDB } from "@/lib/db/mongoose";
 import { BranchService } from "@/lib/services/BranchService";
 import { getSettings } from "@/lib/services/SettingsService";
 import { IdempotencyKey } from "@/lib/db/models/IdempotencyKey";
+import { sendEmail, getBranding } from "@/lib/email";
+import { buildOrderConfirmationEmail } from "@/lib/email/templates/orderConfirmation";
+import { buildAdminOrderAlertEmail } from "@/lib/email/templates/adminOrderAlert";
 
 const itemSchema = z.object({
   productId: z.string().min(1),
@@ -326,6 +329,72 @@ export async function POST(req: Request) {
         customerName: deliveryAddress.fullName,
         order: orderObj,
       });
+
+      // ── Fire-and-forget order confirmation emails ───────────────────────────
+      if (session.user.email) {
+        const branding = getBranding(settings);
+        const emailItems = orderItems.map((item: any) => ({
+          name: (productById.get(item.productId.toString()) as any)?.name ?? "Item",
+          variantName: item.variantName,
+          quantity: item.quantity,
+          price: item.price,
+          selectedAddons: item.selectedAddons,
+        }));
+        const emailDeliveryAddress = {
+          fullName: deliveryAddress.fullName,
+          phone: deliveryAddress.phone,
+          houseNumber: deliveryAddress.houseNumber,
+          floor: deliveryAddress.floor,
+          street: deliveryAddress.street,
+          landmark: deliveryAddress.landmark,
+          city: deliveryAddress.city,
+          state: deliveryAddress.state,
+          pincode: deliveryAddress.pincode,
+          deliveryInstructions: deliveryAddress.deliveryInstructions,
+        };
+        Promise.all([
+          sendEmail({
+            to: session.user.email,
+            subject: `Order Confirmed — ${order.orderId} | ${branding.appName}`,
+            html: buildOrderConfirmationEmail({
+              branding,
+              customerName: deliveryAddress.fullName,
+              orderId: order.orderId,
+              orderStatus: "PLACED",
+              items: emailItems,
+              subTotal: Number(subTotal.toFixed(2)),
+              tax,
+              deliveryFee,
+              total,
+              paymentMethod: "COD",
+              deliveryAddress: emailDeliveryAddress,
+              estimatedMinutes: 45,
+              trackUrl: `${branding.websiteUrl}/orders`,
+            }),
+          }),
+          sendEmail({
+            to: branding.supportEmail || branding.appName,
+            subject: `🍕 New COD Order — ${order.orderId} (${deliveryAddress.city})`,
+            html: buildAdminOrderAlertEmail({
+              branding,
+              orderId: order.orderId,
+              orderStatus: "PLACED",
+              customerName: deliveryAddress.fullName,
+              customerEmail: session.user.email,
+              customerPhone: deliveryAddress.phone,
+              items: emailItems,
+              subTotal: Number(subTotal.toFixed(2)),
+              tax,
+              deliveryFee,
+              total,
+              paymentMethod: "COD",
+              deliveryAddress: emailDeliveryAddress,
+              specialInstructions,
+              ordersAdminUrl: `${branding.websiteUrl}/branch`,
+            }),
+          }),
+        ]).catch((err) => console.error("[OrderEmail] Failed to send COD confirmation:", err));
+      }
 
       const codResponse = {
         success: true,

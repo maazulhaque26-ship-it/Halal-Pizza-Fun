@@ -211,8 +211,8 @@ export default function Footer({
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-white mb-1">Get the {displaySiteName} App</h3>
-                  <p className="text-white/50 text-sm max-w-sm">
+                  <h3 className="text-lg sm:text-xl font-black text-white mb-1 leading-tight">Get the {displaySiteName} App</h3>
+                  <p className="text-white/50 text-sm max-w-sm line-clamp-3">
                     Faster ordering, live tracking &amp; exclusive app-only deals — install as PWA, no download needed.
                   </p>
                 </div>

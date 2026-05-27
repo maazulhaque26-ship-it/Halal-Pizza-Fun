@@ -183,7 +183,7 @@ export function PwaManager() {
       {/* ── Floating Install Banner — shown when Chrome fires beforeinstallprompt ── */}
       {showBanner && deferredPrompt && (
         <div className="fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-[#080d15]/95 backdrop-blur-md border border-white/10 p-4 rounded-2xl shadow-2xl z-50 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-5 duration-300">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-white/15 bg-[#0d1117] flex items-center justify-center shadow-md">
               <img
                 src={appLogoUrl}
@@ -192,9 +192,9 @@ export function PwaManager() {
                 onError={e => { (e.currentTarget as HTMLImageElement).src = FALLBACK_ICON; }}
               />
             </div>
-            <div>
-              <h4 className="font-semibold text-sm text-white">Install the App</h4>
-              <p className="text-xs text-white/60">Get real-time order alerts &amp; faster experience.</p>
+            <div className="min-w-0">
+              <h4 className="font-semibold text-sm text-white truncate">Install the App</h4>
+              <p className="text-xs text-white/60 line-clamp-2 leading-snug">Get real-time order alerts &amp; faster experience.</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
