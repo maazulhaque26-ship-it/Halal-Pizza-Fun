@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Loader2, X, Save, ShieldAlert, Store, Edit, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Loader2, X, Save, ShieldAlert, Store, Edit, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/components/ui/Toast";
 import { API, ROLES } from "@/config/constants";
 
@@ -23,6 +23,7 @@ export default function AdminUsersPage() {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const fetchAll = async () => {
     try {
@@ -93,7 +94,7 @@ export default function AdminUsersPage() {
           <h2 className="text-2xl font-black text-white">Authorities Management</h2>
           <p className="text-gray-400 mt-1 text-sm">{users.filter(u => u.role !== ROLES.CUSTOMER).length} staff members</p>
         </div>
-        <button onClick={() => { setForm(empty); setShowModal(true); }}
+        <button onClick={() => { setForm(empty); setShowPassword(false); setShowModal(true); }}
           className="flex items-center gap-2 bg-primary text-black px-5 py-3 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25 self-start sm:self-auto">
           <Plus className="w-4 h-4" /> Add User
         </button>
@@ -149,7 +150,8 @@ export default function AdminUsersPage() {
                               role: u.role,
                               branchId: (u.branchId as any)?._id || "",
                             });
-                            setShowModal(true);
+                            setShowPassword(false);
+                          setShowModal(true);
                           }} className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" title="Edit">
                             <Edit className="w-4 h-4" />
                           </button>
@@ -224,7 +226,7 @@ export default function AdminUsersPage() {
             className="w-full h-full sm:h-auto sm:rounded-3xl rounded-none shadow-2xl sm:max-w-lg overflow-hidden overflow-y-auto" style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.08)" }} >
             <div className="flex items-center justify-between p-6 border-b border-white/8">
               <h3 className="text-xl font-black text-white">{form._id ? "Edit Authority" : "Add New Authority"}</h3>
-              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
+              <button onClick={() => { setShowModal(false); setShowPassword(false); }} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -239,7 +241,23 @@ export default function AdminUsersPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Password {form._id ? "(Leave blank to keep current)" : "*"}</label>
-                <input type="password" placeholder={form._id ? "Leave blank to keep unchanged" : "Min 6 characters"} className={inputCls} value={form.password} onChange={e => setForm((p: any) => ({ ...p, password: e.target.value }))} />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder={form._id ? "Leave blank to keep unchanged" : "Min 6 characters"}
+                    className={`${inputCls} pr-11`}
+                    value={form.password}
+                    onChange={e => setForm((p: any) => ({ ...p, password: e.target.value }))}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors p-1"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Role</label>
@@ -258,7 +276,7 @@ export default function AdminUsersPage() {
               )}
             </div>
             <div className="flex gap-3 p-6 pt-0 border-t border-white/5 mt-4">
-              <button onClick={() => setShowModal(false)} className="flex-1 py-3 border border-white/10 text-gray-400 rounded-xl font-semibold hover:bg-white/5 transition-colors">
+              <button onClick={() => { setShowModal(false); setShowPassword(false); }} className="flex-1 py-3 border border-white/10 text-gray-400 rounded-xl font-semibold hover:bg-white/5 transition-colors">
                 Cancel
               </button>
               <button onClick={handleSave} disabled={saving} className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-black rounded-xl font-bold hover:bg-primary/90 transition-colors disabled:opacity-60">
