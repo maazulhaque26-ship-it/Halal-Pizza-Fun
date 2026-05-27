@@ -1,7 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { connectDB } from "@/lib/db/mongoose";
-import { User } from "@/lib/db/models/User";
 import { env } from "@/config/env";
 import bcrypt from "bcryptjs";
 
@@ -16,22 +15,47 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        await connectDB();
-        const user = await User.findOne({ email: credentials.email }).select("+password");
-        
-        if (!user) return null;
+        try {
+          await connectDB();
 
-        const isMatch = await bcrypt.compare(credentials.password, user.password);
-        if (!isMatch) return null;
+          // Use raw MongoDB collection to guarantee the password field is
+          // retrieved regardless of Mongoose projection defaults.
+          const mongoose = (await import("mongoose")).default;
+          const db = mongoose.connection.db!;
+          const raw = await db.collection("users").findOne(
+            { email: credentials.email.toLowerCase().trim() },
+            { projection: { _id: 1, name: 1, email: 1, password: 1, role: 1,
+                            branchId: 1, permissions: 1, isActive: 1, isArchived: 1 } }
+          );
 
-        return {
-          id: user._id.toString(),
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          branchId: user.branchId?.toString(),
-          permissions: user.permissions,
-        };
+          if (!raw) {
+            console.log("[auth] No user found for:", credentials.email);
+            return null;
+          }
+
+          if (!raw.password) {
+            console.log("[auth] User has no password hash — account may have been created without one");
+            return null;
+          }
+
+          const isMatch = await bcrypt.compare(credentials.password, raw.password as string);
+          if (!isMatch) {
+            console.log("[auth] Password mismatch for:", credentials.email);
+            return null;
+          }
+
+          return {
+            id: raw._id.toString(),
+            name: raw.name as string,
+            email: raw.email as string,
+            role: raw.role as string,
+            branchId: raw.branchId?.toString(),
+            permissions: (raw.permissions as string[]) || [],
+          };
+        } catch (err) {
+          console.error("[auth] authorize error:", err);
+          return null;
+        }
       }
     })
   ],
