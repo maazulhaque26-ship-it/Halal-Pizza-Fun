@@ -19,10 +19,14 @@ function checkReviewRateLimit(ip: string): boolean {
   return true;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await connectDB();
-    const reviews = await Review.find({ status: "approved" })
+    const { searchParams } = new URL(req.url);
+    const all = searchParams.get("all") === "true";
+
+    const query = all ? {} : { status: "approved" };
+    const reviews = await Review.find(query)
       .populate("user", "name image")
       .sort({ createdAt: -1 })
       .lean();
@@ -65,14 +69,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Rating must be 1–5" }, { status: 400 });
     }
 
+    const { guestAvatar } = body;
+
     const newReview = await Review.create({
-      guestName: typeof guestName === "string" ? guestName.slice(0, 60) : "Anonymous Foodie",
+      guestName: typeof guestName === "string" && guestName.trim() ? guestName.trim().slice(0, 60) : "Anonymous Foodie",
+      guestAvatar: typeof guestAvatar === "string" ? guestAvatar : "",
       rating: numRating,
       comment: comment.trim(),
-      status: "pending", // requires admin approval — not auto-approved
+      status: "approved", // guest reviews are auto-approved and shown immediately
     });
 
-    return NextResponse.json({ success: true, data: { id: newReview._id } });
+    // Return full review object so the caller can optimistically prepend it to the list
+    return NextResponse.json({
+      success: true,
+      data: {
+        _id: newReview._id.toString(),
+        guestName: newReview.guestName,
+        guestAvatar: newReview.guestAvatar || "",
+        rating: newReview.rating,
+        comment: newReview.comment,
+        status: newReview.status,
+        createdAt: newReview.createdAt,
+      },
+    });
   } catch (error: any) {
     console.error("POST /api/reviews error:", error);
     return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });

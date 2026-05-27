@@ -61,13 +61,15 @@ export default function ReviewSection() {
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch("/api/reviews");
+      const res = await fetch("/api/reviews", { cache: "no-store" });
       const data = await res.json();
-      if (data.success && data.data && data.data.length > 0) {
-        setReviews(data.data);
+      if (data.success) {
+        // Always replace with DB data; only fall back if DB returns empty
+        setReviews(data.data && data.data.length > 0 ? data.data : FALLBACK_REVIEWS);
       }
     } catch (err) {
       console.error("Failed to fetch reviews:", err);
+      // Keep current reviews (could be optimistic or fallback)
     } finally {
       setLoading(false);
     }
@@ -123,13 +125,16 @@ export default function ReviewSection() {
 
       const data = await res.json();
       if (data.success) {
-        toast.success("Thank you for your review!");
-        setReviews([data.data, ...reviews]);
+        toast.success("Thank you! Your review is now live 🎉");
+        // Optimistically prepend the full review returned by the API
+        setReviews(prev => [data.data, ...prev]);
         setGuestName("");
         setGuestAvatar("");
         setRating(5);
         setComment("");
         setShowForm(false);
+        // Re-fetch after a short delay to sync with DB
+        setTimeout(() => fetchReviews(), 1500);
       } else {
         throw new Error(data.error || "Failed to submit review");
       }

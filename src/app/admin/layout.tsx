@@ -9,6 +9,7 @@ import {
   LayoutDashboard, Store, Package, Users, Settings,
   ShoppingBag, Tag, LogOut, ChevronRight, Bell, FileText,
   TrendingUp, Ticket, Menu, X, Crown, Shield, Zap, UserCircle,
+  MessageSquareQuote,
 } from "lucide-react";
 import { ROLES, ROUTES } from "@/config/constants";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { label: "Branches",     href: ROUTES.ADMIN.BRANCHES,   icon: Store,           badge: null },
   { label: "Coupons",      href: ROUTES.ADMIN.COUPONS,    icon: Ticket,          badge: null },
   { label: "Users",        href: ROUTES.ADMIN.USERS,      icon: Users,           badge: null },
+  { label: "Reviews",      href: "/admin/reviews",         icon: MessageSquareQuote, badge: null },
   { label: "About Page",   href: "/admin/about",           icon: FileText,        badge: null },
   { label: "Franchise Page", href: "/admin/franchise",       icon: TrendingUp,      badge: null },
   { label: "My Profile",   href: "/admin/profile",         icon: UserCircle,      badge: null },
