@@ -19,18 +19,13 @@ jobs:
           node-version: '20'
           cache: npm
 
-      # ── 3. Install deps ───────────────────────────────────────────────────
-      - name: Install dependencies
-        run: npm ci
-
-      # ── 4. Vercel CLI ─────────────────────────────────────────────────────
+      # ── 3. Vercel CLI ─────────────────────────────────────────────────────
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      # ── 5. Pull production env vars (best-effort) ─────────────────────────
-      # `continue-on-error: true` means an expired/invalid VERCEL_TOKEN will
-      # NOT abort the build. The next step guarantees NEXT_PUBLIC_SOCKET_URL
-      # is present regardless of whether the pull succeeded.
+      # ── 4. Pull production env vars (best-effort) ─────────────────────────
+      # continue-on-error so a future token expiry doesn't block the build.
+      # The next step guarantees NEXT_PUBLIC_SOCKET_URL regardless.
       - name: Pull Vercel production environment variables
         continue-on-error: true
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
@@ -38,44 +33,34 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      # ── 6. Guarantee NEXT_PUBLIC_SOCKET_URL ──────────────────────────────
-      # Uses the value from vercel pull (preferred) or falls back to the
-      # hardcoded URL. Either way the var is written to .env.production.local
-      # so the Next.js build picks it up.
+      # ── 5. Guarantee NEXT_PUBLIC_SOCKET_URL ──────────────────────────────
       - name: Ensure NEXT_PUBLIC_SOCKET_URL is set
         run: |
           SOCKET_URL="https://hpf-socket-server.onrender.com"
-
           PULLED=""
           if [ -f .env.production.local ]; then
             PULLED=$(grep "^NEXT_PUBLIC_SOCKET_URL=" .env.production.local | cut -d= -f2- || true)
           fi
-
           if [ -n "$PULLED" ] && [[ "$PULLED" != *"localhost"* ]] && [[ "$PULLED" != *"127.0.0.1"* ]]; then
-            echo "✅  NEXT_PUBLIC_SOCKET_URL from Vercel pull: $PULLED"
+            echo "✅ NEXT_PUBLIC_SOCKET_URL from Vercel pull: $PULLED"
           else
-            # Ensure the file exists before appending
             touch .env.production.local
             echo "NEXT_PUBLIC_SOCKET_URL=${SOCKET_URL}" >> .env.production.local
-            echo "✅  NEXT_PUBLIC_SOCKET_URL injected by workflow: ${SOCKET_URL}"
+            echo "✅ NEXT_PUBLIC_SOCKET_URL injected by workflow: ${SOCKET_URL}"
           fi
 
-      # ── 7. Build (plain next build — no token needed) ─────────────────────
-      # We run `next build` directly so the build never depends on a valid
-      # VERCEL_TOKEN. The .env.production.local written above is automatically
-      # read by Next.js (it is one of the default env file search paths).
+      # ── 6. Build (vercel build → outputs to .vercel/output/) ─────────────
+      # vercel build reads .env.production.local and inlines NEXT_PUBLIC_*
+      # vars before running next build. The output goes to .vercel/output/
+      # which is what vercel deploy --prebuilt expects.
       - name: Build
-        run: npm run build
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           NEXT_PUBLIC_SOCKET_URL: https://hpf-socket-server.onrender.com
-          # Keep NODE_ENV explicit so next.config.ts build-time checks fire
-          NODE_ENV: production
 
-      # ── 8. Deploy prebuilt to Vercel ──────────────────────────────────────
-      # This is the only step that needs a valid VERCEL_TOKEN.
-      # If your token is expired, go to https://vercel.com/account/tokens,
-      # create a new token, and update the VERCEL_TOKEN GitHub Secret at:
-      # https://github.com/maazulhaque26-ship-it/Halal-Pizza-Fun/settings/secrets/actions
+      # ── 7. Deploy prebuilt artifacts ──────────────────────────────────────
       - name: Deploy
         run: vercel deploy --prebuilt --prod --archive=tgz --token=${{ secrets.VERCEL_TOKEN }}
         env:
