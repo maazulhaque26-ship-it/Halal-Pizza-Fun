@@ -268,16 +268,18 @@ export async function POST(req: Request) {
     const insta = settings?.socialLinks?.instagram || "";
     const yt = settings?.socialLinks?.youtube || "";
 
+    const emailPort = Number(process.env.EMAIL_PORT) || 587;
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST || "smtp.gmail.com",
-      port: Number(process.env.EMAIL_PORT) || 587,
+      port: emailPort,
+      secure: process.env.EMAIL_SECURE === "true" || emailPort === 465,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
 
-    const senderAddress = process.env.EMAIL_USER || "noreply@hpf.com";
+    const senderAddress = process.env.EMAIL_FROM || process.env.EMAIL_USER || "noreply@hpf.com";
 
     const applicantMailOptions = {
       from: `"${siteName}" <${senderAddress}>`,
