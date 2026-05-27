@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { User, Lock, Mail, ArrowRight, Loader2, Phone, Eye, EyeOff, Flame } from "lucide-react";
 import Link from "next/link";
@@ -9,10 +10,16 @@ import { toast } from "@/components/ui/Toast";
 import Navbar from "@/components/Navbar";
 
 export default function RegisterPage() {
+  const { data: session, status } = useSession();
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Already logged in → go home
+  useEffect(() => {
+    if (status === "authenticated") router.replace("/");
+  }, [status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

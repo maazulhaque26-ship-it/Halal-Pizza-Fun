@@ -52,11 +52,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push(ROUTES.AUTH.LOGIN);
+    if (status === "loading") return; // Wait — don't redirect during loading
+    if (status === "unauthenticated") {
+      router.push(`${ROUTES.AUTH.LOGIN}?from=${encodeURIComponent(pathname)}`);
+    }
     if (status === "authenticated" && session.user.role !== ROLES.SUPER_ADMIN) {
       router.push(ROUTES.AUTH.LOGIN + "?reason=unauthorized");
     }
-  }, [status, session, router]);
+  }, [status, session, router, pathname]);
 
   if (status === "loading") {
     return (

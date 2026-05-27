@@ -29,14 +29,17 @@ export default function BranchLayout({ children }: { children: React.ReactNode }
   }, [pathname]);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push(ROUTES.AUTH.LOGIN);
+    if (status === "loading") return; // Wait — don't redirect during loading
+    if (status === "unauthenticated") {
+      router.push(`${ROUTES.AUTH.LOGIN}?from=${encodeURIComponent(pathname)}`);
+    }
     if (status === "authenticated" &&
       session.user.role !== ROLES.BRANCH_MANAGER &&
       session.user.role !== ROLES.MANAGER &&
       session.user.role !== ROLES.SUPER_ADMIN) {
       router.push(ROUTES.AUTH.LOGIN + "?reason=unauthorized");
     }
-  }, [status, session, router]);
+  }, [status, session, router, pathname]);
 
   if (status === "loading") return (
     <div className="min-h-screen flex items-center justify-center bg-background">

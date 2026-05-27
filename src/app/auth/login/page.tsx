@@ -1,25 +1,56 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Mail, ArrowRight, Loader2, Eye, EyeOff, Flame } from "lucide-react";
 import Link from "next/link";
+import { ROLES } from "@/config/constants";
+
+/** Where to send a user after successful login based on their role */
+function roleDestination(role: string): string {
+  if (role === ROLES.SUPER_ADMIN)   return "/admin/dashboard";
+  if (role === ROLES.BRANCH_MANAGER) return "/branch/dashboard";
+  if (role === ROLES.MANAGER)        return "/branch/dashboard";
+  if (role === ROLES.DELIVERY_STAFF) return "/delivery";
+  return "/";
+}
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const [redirectPath, setRedirectPath] = useState("/");
 
+  const [email, setEmail]           = useState("");
+  const [password, setPassword]     = useState("");
+  const [loading, setLoading]       = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError]           = useState("");
+
+  // Where to go after login — read both ?from= (our own redirects) and
+  // ?callbackUrl= (NextAuth's standard param, used by signIn() itself)
+  const [dest, setDest] = useState("/");
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setRedirectPath(params.get("from") ?? "/");
+    const from   = params.get("from");
+    const cb     = params.get("callbackUrl");
+    if (from) {
+      setDest(from);
+    } else if (cb) {
+      // callbackUrl is a full URL — extract the pathname only
+      try { setDest(new URL(cb).pathname); } catch { setDest(cb); }
+    }
   }, []);
+
+  // ── If already logged in, skip the form and go straight to dashboard ──
+  useEffect(() => {
+    if (status === "loading") return;
+    if (status === "authenticated" && session?.user) {
+      // If `dest` points to a role-appropriate page, use it; otherwise role dashboard
+      const target = dest !== "/" ? dest : roleDestination(session.user.role);
+      router.replace(target);
+    }
+  }, [status, session, dest, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,57 +58,62 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const callbackUrl = `${window.location.origin}${redirectPath}`;
       const result = await signIn("credentials", {
         redirect: false,
         email,
         password,
-        callbackUrl,
       });
 
-      if (result?.error) {
-        setError(result.error || "Invalid email or password");
+      if (!result?.ok || result.error) {
+        setError(result?.error || "Invalid email or password. Please try again.");
         return;
       }
 
-      if (!result?.ok) {
-        setError("Login failed. Please check your credentials and try again.");
-        return;
-      }
-
-      if (redirectPath && redirectPath !== "/") {
-        window.location.href = callbackUrl;
-        return;
-      }
-
+      // Fetch the session so we know the role for routing
       const sessionRes = await fetch("/api/auth/session");
-      if (!sessionRes.ok) {
-        setError("Unable to retrieve session after login. Please refresh and try again.");
+      const sessionData = await sessionRes.json();
+      const role = sessionData?.user?.role as string | undefined;
+
+      if (!role) {
+        setError("Login failed — could not read session. Please try again.");
         return;
       }
 
-      const session = await sessionRes.json();
-      const role = session?.user?.role;
+      // Role-appropriate destination, or the page they came from
+      let target = dest !== "/" ? dest : roleDestination(role);
 
-      if (role === "SUPER_ADMIN") {
-        router.push("/admin/dashboard");
-      } else if (role === "BRANCH_MANAGER") {
-        router.push("/branch/dashboard");
-      } else if (role === "DELIVERY_STAFF") {
-        router.push("/delivery");
-      } else {
-        router.push("/");
+      // Safety: don't send non-admin roles to admin pages
+      if (target.startsWith("/admin") && role !== ROLES.SUPER_ADMIN) {
+        target = roleDestination(role);
       }
-    } catch (err) {
-      setError("An unexpected error occurred");
+      if (target.startsWith("/branch") &&
+          role !== ROLES.BRANCH_MANAGER && role !== ROLES.MANAGER && role !== ROLES.SUPER_ADMIN) {
+        target = roleDestination(role);
+      }
+
+      router.push(target);
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Show spinner while checking existing session
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  // Already logged in — useEffect above will redirect; show nothing in the meantime
+  if (status === "authenticated") return null;
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center p-4">
-      {/* Background elements */}
+      {/* Background */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.06),transparent_60%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(212,175,55,0.04),transparent_60%)]" />
       <motion.div
@@ -92,7 +128,6 @@ export default function LoginPage() {
         transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="relative w-full max-w-md"
       >
-        {/* Card */}
         <div
           className="rounded-3xl overflow-hidden"
           style={{
@@ -101,11 +136,10 @@ export default function LoginPage() {
             boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 60px rgba(212,175,55,0.05)",
           }}
         >
-          {/* Top accent line */}
           <div className="h-px bg-linear-to-r from-transparent via-primary/50 to-transparent" />
 
           <div className="p-8 md:p-10">
-            {/* Brand mark */}
+            {/* Brand */}
             <div className="flex items-center justify-center mb-8">
               <div className="flex flex-col items-center gap-3">
                 <div
@@ -130,13 +164,14 @@ export default function LoginPage() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={e => setEmail(e.target.value)}
                     placeholder="you@example.com"
+                    required
+                    autoComplete="email"
                     className="w-full pl-11 pr-4 py-3.5 rounded-xl text-white placeholder:text-white/20 text-sm font-medium transition-all focus:outline-none"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
                     onFocus={e => (e.currentTarget.style.borderColor = "rgba(212,175,55,0.4)")}
-                    onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
-                    required
+                    onBlur={e  => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
                   />
                 </div>
               </div>
@@ -149,18 +184,20 @@ export default function LoginPage() {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
+                    required
+                    autoComplete="current-password"
                     className="w-full pl-11 pr-12 py-3.5 rounded-xl text-white placeholder:text-white/20 text-sm font-medium transition-all focus:outline-none"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
                     onFocus={e => (e.currentTarget.style.borderColor = "rgba(212,175,55,0.4)")}
-                    onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
-                    required
+                    onBlur={e  => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/60 transition-colors"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/60 transition-colors p-1"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -193,10 +230,7 @@ export default function LoginPage() {
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <>
-                    Sign In
-                    <ArrowRight className="w-4 h-4" />
-                  </>
+                  <> Sign In <ArrowRight className="w-4 h-4" /> </>
                 )}
               </button>
             </form>
@@ -210,11 +244,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Back to home */}
         <p className="mt-5 text-center text-xs text-white/20">
-          <Link href="/" className="hover:text-white/50 transition-colors">
-            ← Back to homepage
-          </Link>
+          <Link href="/" className="hover:text-white/50 transition-colors">← Back to homepage</Link>
         </p>
       </motion.div>
     </div>
