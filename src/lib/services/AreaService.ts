@@ -151,13 +151,20 @@ export class AreaService {
 
   /**
    * Search areas by name
+   * SECURITY: User input is escaped so it cannot be interpreted as a regex —
+   * blocks NoSQL regex DoS via catastrophic backtracking.
    */
   static async searchAreas(query: string): Promise<IArea[]> {
     try {
+      // Escape every regex metacharacter so the search treats input as a literal
+      const safe = String(query).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      // Cap input length to further reduce risk
+      const bounded = safe.slice(0, 64);
+
       const areas = await Area.find({
         $or: [
-          { name: { $regex: query, $options: "i" } },
-          { landmarks: { $regex: query, $options: "i" } },
+          { name: { $regex: bounded, $options: "i" } },
+          { landmarks: { $regex: bounded, $options: "i" } },
         ],
         isActive: true,
       })

@@ -42,7 +42,9 @@ export default function OrderTrackingPage() {
 
   useEffect(() => {
     fetchOrder();
-    const interval = setInterval(fetchOrder, 15000); // Poll every 15s for updates
+    // Slow safety-net polling (60s) in case the socket is disconnected;
+    // primary live-update path is the socket subscription below.
+    const interval = setInterval(fetchOrder, 60000);
     return () => clearInterval(interval);
   }, [id]);
 
@@ -59,10 +61,12 @@ export default function OrderTrackingPage() {
     };
 
     socket.on("ORDER_STATUS_CHANGED", onStatusChange);
+    socket.on("ORDER_STATUS_UPDATED", onStatusChange);
     connectSocket(); // no-op if already connected
 
     return () => {
       socket.off("ORDER_STATUS_CHANGED", onStatusChange);
+      socket.off("ORDER_STATUS_UPDATED", onStatusChange);
     };
   }, [session?.user?.id, id]);
 

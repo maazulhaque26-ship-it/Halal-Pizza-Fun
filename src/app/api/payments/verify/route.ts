@@ -233,6 +233,8 @@ export async function POST(req: Request) {
 
     let order: any;
     try {
+      // Use the recomputed (authoritative) values, not the snapshot, so that
+      // any mid-flight pricing change is reflected in the persisted order.
       const [createdOrder] = await Order.create(
         [
           {
@@ -240,10 +242,10 @@ export async function POST(req: Request) {
             customerId: payment.userId,
             branchId: nearestBranch?._id || snapshot.branchId,
             items: snapshot.items,
-            subTotal: snapshot.subTotal,
-            tax: snapshot.tax,
-            deliveryFee: snapshot.deliveryFee,
-            total: snapshot.total,
+            subTotal: Number(computedSubtotal.toFixed(2)),
+            tax: computedTax,
+            deliveryFee: computedDeliveryFee,
+            total: computedTotal,
             deliveryAddress: snapshot.deliveryAddress,
             status: ORDER_STATUS.PENDING,
             paymentMethod: snapshot.paymentMethod,

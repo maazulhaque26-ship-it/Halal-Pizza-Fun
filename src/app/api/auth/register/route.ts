@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { connectDB } from "@/lib/db/mongoose";
 import { User } from "@/lib/db/models/User";
 import bcrypt from "bcryptjs";
@@ -30,6 +31,26 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
+// ─── Zod schema: enforces proper formats / minimum strengths ──────────────
+const registerSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(80),
+  email: z.string().trim().toLowerCase().email("Invalid email address").max(254),
+  // 8+ chars including at least one letter and one number is a sensible floor.
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(128)
+    .regex(/[A-Za-z]/, "Password must contain at least one letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
+  phone: z
+    .string()
+    .trim()
+    .max(20)
+    .regex(/^[0-9+()\-\s]{7,20}$/, "Invalid phone number")
+    .optional()
+    .or(z.literal("")),
+});
+
 export async function POST(req: Request) {
   try {
     const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
@@ -41,14 +62,18 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, email, password, phone } = body;
-
-    if (!name || !email || !password) {
+    const parsed = registerSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: "Missing required fields" },
+        {
+          success: false,
+          message: parsed.error.issues[0]?.message || "Invalid registration data",
+        },
         { status: 400 }
       );
     }
+
+    const { name, email, password, phone } = parsed.data;
 
     await connectDB();
 
@@ -65,7 +90,7 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const newUser = await User.create({
+    await User.create({
       name,
       email,
       password: hashedPassword,

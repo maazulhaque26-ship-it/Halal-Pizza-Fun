@@ -3,13 +3,42 @@ import { z } from "zod";
 import { Coupon } from "@/lib/db/models/Coupon";
 import { connectDB } from "@/lib/db/mongoose";
 
+// ─── Per-IP rate limiter: prevent brute-forcing coupon codes ──────────────
+const RATE_LIMIT = 20;                  // 20 lookups per window
+const RATE_WINDOW_MS = 5 * 60 * 1000;   // 5 minutes
+const couponLookupMap = new Map<string, { count: number; resetAt: number }>();
+
+function isCouponRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = couponLookupMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    couponLookupMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+  if (entry.count >= RATE_LIMIT) return true;
+  entry.count++;
+  return false;
+}
+
 const querySchema = z.object({
-  code: z.string().min(1),
+  code: z.string().min(1).max(50),
   orderValue: z.string().transform(Number),
 });
 
 export async function GET(request: Request) {
   try {
+    // ─── Rate limit BEFORE any DB work ───────────────────────────────────
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    if (isCouponRateLimited(ip)) {
+      return NextResponse.json(
+        { success: false, message: "Too many coupon lookups. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const parsed = querySchema.safeParse({
       code: searchParams.get("code"),

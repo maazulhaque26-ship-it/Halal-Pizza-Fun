@@ -62,6 +62,25 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  // ─── HTTP Security Headers ──────────────────────────────────────────────
+  // Hardens responses against clickjacking, MIME-sniffing, leakage and other
+  // common web attacks. HSTS forces HTTPS for one year (including subdomains).
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self), interest-cohort=()" },
+          { key: "X-DNS-Prefetch-Control", value: "on" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

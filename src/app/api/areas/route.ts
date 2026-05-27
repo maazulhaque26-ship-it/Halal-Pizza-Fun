@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/options";
 import { AreaService } from "@/lib/services/AreaService";
 import { connectDB } from "@/lib/db/mongoose";
+import { ROLES } from "@/config/constants";
 import mongoose from "mongoose";
 
 // GET /api/areas - List all active areas for customer selection
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (session.user?.role !== "SUPER_ADMIN") {
+    if (session.user?.role !== ROLES.SUPER_ADMIN) {
       return NextResponse.json(
         { success: false, error: "Forbidden: Only super admins can create areas" },
         { status: 403 }

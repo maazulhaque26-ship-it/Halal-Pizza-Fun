@@ -1,11 +1,23 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/options";
 import { connectDB } from "@/lib/db/mongoose";
 import { Review } from "@/lib/db/models/Review";
+import { ROLES } from "@/config/constants";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: Request, context: RouteContext) {
   try {
+    // ─── AUTH: Only SUPER_ADMIN may moderate reviews ─────────────────────
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== ROLES.SUPER_ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await context.params;
     await connectDB();
     const body = await req.json();
@@ -43,6 +55,15 @@ export async function PATCH(req: Request, context: RouteContext) {
 
 export async function DELETE(_req: Request, context: RouteContext) {
   try {
+    // ─── AUTH: Only SUPER_ADMIN may delete reviews ───────────────────────
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== ROLES.SUPER_ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await context.params;
     await connectDB();
 

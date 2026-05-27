@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /branch
+Disallow: /branch/
+Disallow: /api
+Disallow: /api/
+Disallow: /auth/login
+Disallow: /auth/register
+Disallow: /checkout
+Disallow: /orders
+Disallow: /profile
+
+Sitemap: https://pizzafun.co.in/sitemap.xml

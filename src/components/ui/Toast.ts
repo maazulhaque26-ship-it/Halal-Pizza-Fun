@@ -20,7 +20,16 @@ function createToast(message: string, type: ToastType) {
   const el = document.createElement("div");
   el.id = id;
   el.className = `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-white font-semibold text-sm transition-all duration-300 transform translate-y-4 opacity-0 ${colors[type]}`;
-  el.innerHTML = `<span class="text-lg">${icons[type]}</span><span>${message}</span>`;
+
+  // SECURITY: use textContent — server responses can contain user-controlled
+  // content (e.g., names, addresses) and would otherwise execute as HTML.
+  const iconSpan = document.createElement("span");
+  iconSpan.className = "text-lg";
+  iconSpan.textContent = icons[type];
+  const msgSpan = document.createElement("span");
+  msgSpan.textContent = message;
+  el.appendChild(iconSpan);
+  el.appendChild(msgSpan);
 
   // Toast container
   let container = document.getElementById("toast-container");

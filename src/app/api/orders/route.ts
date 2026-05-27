@@ -87,9 +87,20 @@ export async function PATCH(request: Request) {
 
     await connectDB();
 
-    const order = await Order.findById(orderId);
+    // ─── Load order BEFORE any mutation so we can enforce RBAC ─────────────
+    const order = await Order.findById(orderId).select("branchId").lean();
     if (!order) return NextResponse.json({ success: false, message: "Order not found" }, { status: 404 });
 
+    // ─── Enforce Branch Manager RBAC Boundaries on Order Mutation ──────────
+    if (session.user.role === ROLES.BRANCH_MANAGER) {
+      if (!session.user.branchId || (order as any).branchId?.toString() !== session.user.branchId) {
+        return NextResponse.json({ success: false, message: "Forbidden: Cannot update orders outside your branch" }, { status: 403 });
+      }
+    } else if (session.user.role !== ROLES.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, message: "Forbidden: Unauthorized to edit orders" }, { status: 403 });
+    }
+
+    // RBAC passed — now perform the update
     const updatedOrder = await Order.findByIdAndUpdate(
       orderId,
       {
@@ -106,15 +117,6 @@ export async function PATCH(request: Request) {
     );
 
     if (!updatedOrder) return NextResponse.json({ success: false, message: "Order not found during update" }, { status: 404 });
-
-    // ─── Enforce Branch Manager RBAC Boundaries on Order Mutation ──────────
-    if (session.user.role === ROLES.BRANCH_MANAGER) {
-      if (!session.user.branchId || updatedOrder.branchId.toString() !== session.user.branchId) {
-        return NextResponse.json({ success: false, message: "Forbidden: Cannot update orders outside your branch" }, { status: 403 });
-      }
-    } else if (session.user.role !== ROLES.SUPER_ADMIN) {
-      return NextResponse.json({ success: false, message: "Forbidden: Unauthorized to edit orders" }, { status: 403 });
-    }
 
     // Re-populate for response
     await updatedOrder.populate([

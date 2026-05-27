@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/options";
 import { AreaService } from "@/lib/services/AreaService";
 import { connectDB } from "@/lib/db/mongoose";
+import { ROLES } from "@/config/constants";
 import mongoose from "mongoose";
 
 // GET /api/areas/[id] - Get specific area details
@@ -56,7 +57,7 @@ export async function PUT(
       );
     }
 
-    if (session.user?.role !== "SUPER_ADMIN") {
+    if (session.user?.role !== ROLES.SUPER_ADMIN) {
       return NextResponse.json(
         { success: false, error: "Forbidden: Only super admins can update areas" },
         { status: 403 }
@@ -118,7 +119,7 @@ export async function DELETE(
       );
     }
 
-    if (session.user?.role !== "SUPER_ADMIN") {
+    if (session.user?.role !== ROLES.SUPER_ADMIN) {
       return NextResponse.json(
         { success: false, error: "Forbidden: Only super admins can delete areas" },
         { status: 403 }

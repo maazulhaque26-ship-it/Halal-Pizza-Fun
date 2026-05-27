@@ -3,7 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/options";
 import { RefundService } from "@/lib/services/RefundService";
 import { connectDB } from "@/lib/db/mongoose";
+import { Order } from "@/lib/db/models/Order";
 import mongoose from "mongoose";
+import { ROLES } from "@/config/constants";
 
 // POST /api/orders/refund - Initiate refund for an order
 export async function POST(request: NextRequest) {
@@ -19,8 +21,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Only branch managers and admins can initiate refunds
-    if (!["BRANCH_MANAGER", "ADMIN", "SUPER_ADMIN"].includes(session.user?.role || "")) {
+    // Only branch managers and super admins can initiate refunds
+    const role = session.user?.role;
+    if (role !== ROLES.BRANCH_MANAGER && role !== ROLES.SUPER_ADMIN) {
       return NextResponse.json(
         { success: false, error: "Forbidden: Only managers can initiate refunds" },
         { status: 403 }
@@ -39,6 +42,37 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
+    }
+
+    if (!mongoose.isValidObjectId(orderId)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid order ID" },
+        { status: 400 }
+      );
+    }
+
+    // ─── Branch Manager RBAC: only their own branch's orders ─────────────
+    if (role === ROLES.BRANCH_MANAGER) {
+      const managerBranchId = session.user.branchId;
+      if (!managerBranchId) {
+        return NextResponse.json(
+          { success: false, error: "Branch manager is not assigned to a branch" },
+          { status: 403 }
+        );
+      }
+      const orderRow = await Order.findById(orderId).select("branchId").lean();
+      if (!orderRow) {
+        return NextResponse.json(
+          { success: false, error: "Order not found" },
+          { status: 404 }
+        );
+      }
+      if ((orderRow as any).branchId?.toString() !== managerBranchId.toString()) {
+        return NextResponse.json(
+          { success: false, error: "Forbidden: order belongs to a different branch" },
+          { status: 403 }
+        );
+      }
     }
 
     // Get client IP and user agent for audit logging
