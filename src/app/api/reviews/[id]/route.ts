@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/mongoose";
 import { Review } from "@/lib/db/models/Review";
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+type RouteContext = { params: Promise<{ id: string }> };
+
+export async function PATCH(req: Request, context: RouteContext) {
   try {
+    const { id } = await context.params;
     await connectDB();
     const body = await req.json();
     const { status } = body;
@@ -19,7 +19,7 @@ export async function PATCH(
     }
 
     const review = await Review.findByIdAndUpdate(
-      params.id,
+      id,
       { status },
       { new: true }
     ).lean();
@@ -41,14 +41,12 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_req: Request, context: RouteContext) {
   try {
+    const { id } = await context.params;
     await connectDB();
 
-    const review = await Review.findByIdAndDelete(params.id).lean();
+    const review = await Review.findByIdAndDelete(id).lean();
 
     if (!review) {
       return NextResponse.json(
