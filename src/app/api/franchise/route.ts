@@ -270,7 +270,7 @@ export async function POST(req: Request) {
 
     const emailPort = Number(process.env.EMAIL_PORT) || 587;
     const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || "smtp.gmail.com",
+      host: process.env.EMAIL_HOST || "smtpout.secureserver.net",
       port: emailPort,
       secure: process.env.EMAIL_SECURE === "true" || emailPort === 465,
       auth: {
