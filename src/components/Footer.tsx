@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, Camera, MessageCircle, Link2, ArrowRight, Mail, Phone, MapPin, Crown } from "lucide-react";
+import { Globe, Camera, MessageCircle, Link2, Mail, Phone, MapPin, Crown, Download, X, Smartphone, ArrowRight } from "lucide-react";
+import { usePwaStore } from "@/store/pwaStore";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ROUTES, API } from "@/config/constants";
@@ -54,6 +55,22 @@ export default function Footer({
   const [fetchedSettings, setFetchedSettings] = useState<any>(null);
   const [isPwa, setIsPwa] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
+
+  // PWA install prompt from global store (captured by PwaManager)
+  const { deferredPrompt, clearDeferredPrompt, isInstalled } = usePwaStore();
+
+  const handleInstallApp = async () => {
+    if (deferredPrompt) {
+      // Native install dialog (Android Chrome)
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") clearDeferredPrompt();
+    } else {
+      // Fallback: show manual guide (iOS Safari, Firefox, etc.)
+      setShowInstallGuide(true);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -201,13 +218,83 @@ export default function Footer({
                 </div>
               </div>
               <button
-                onClick={() => alert("Click the install icon in your browser's address bar, or tap 'Add to Home Screen' in your mobile browser.")}
-                className="shrink-0 btn-premium px-7 py-3.5 rounded-xl text-sm font-black w-full md:w-auto"
+                onClick={handleInstallApp}
+                className="shrink-0 btn-premium px-7 py-3.5 rounded-xl text-sm font-black w-full md:w-auto flex items-center justify-center gap-2"
               >
-                Install App →
+                <Download className="w-4 h-4" />
+                {deferredPrompt ? "Install App" : "How to Install"} →
               </button>
             </div>
           </motion.div>
+        )}
+
+        {/* ── Install Guide Modal (for iOS / unsupported browsers) ── */}
+        {showInstallGuide && (
+          <div className="fixed inset-0 z-999 flex items-end sm:items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={() => setShowInstallGuide(false)}>
+            <div
+              className="w-full max-w-sm rounded-3xl p-6 space-y-5"
+              style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.1)" }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <Smartphone className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="text-white font-black text-base">Install the App</h3>
+                </div>
+                <button onClick={() => setShowInstallGuide(false)} className="text-white/40 hover:text-white p-1">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Android Chrome */}
+              <div className="space-y-3">
+                <p className="text-xs font-black text-primary uppercase tracking-widest">Android (Chrome)</p>
+                <ol className="space-y-2.5">
+                  {[
+                    "Open this page in Chrome browser",
+                    'Tap the ⋮ menu (top-right three dots)',
+                    'Tap "Add to Home Screen"',
+                    'Tap "Add" to confirm — done!',
+                  ].map((step, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                      <span className="text-white/70 text-sm">{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <div className="h-px bg-white/10" />
+
+              {/* iOS Safari */}
+              <div className="space-y-3">
+                <p className="text-xs font-black text-primary uppercase tracking-widest">iPhone / iPad (Safari)</p>
+                <ol className="space-y-2.5">
+                  {[
+                    "Open this page in Safari",
+                    'Tap the Share button (□↑) at the bottom',
+                    'Scroll down and tap "Add to Home Screen"',
+                    'Tap "Add" — the app icon appears on your home screen!',
+                  ].map((step, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                      <span className="text-white/70 text-sm">{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <button
+                onClick={() => setShowInstallGuide(false)}
+                className="w-full py-3 bg-primary text-black font-black rounded-xl text-sm"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Main Footer Grid */}

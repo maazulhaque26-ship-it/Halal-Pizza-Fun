@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Download, Bell, X } from "lucide-react";
+import { usePwaStore } from "@/store/pwaStore";
 
 const FALLBACK_ICON = "/icons/icon-192x192.png";
 
@@ -19,8 +20,7 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export function PwaManager() {
   const { data: session } = useSession();
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const { deferredPrompt, showBanner, setDeferredPrompt, clearDeferredPrompt, setShowBanner, setInstalled } = usePwaStore();
   const [permission, setPermission] = useState<NotificationPermission | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [appLogoUrl, setAppLogoUrl] = useState<string>(FALLBACK_ICON);
@@ -30,6 +30,13 @@ export function PwaManager() {
     isMounted.current = true;
     return () => { isMounted.current = false; };
   }, []);
+
+  // Check if already installed
+  useEffect(() => {
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setInstalled(true);
+    }
+  }, [setInstalled]);
 
   // Fetch admin's uploaded logo to use in the install banner
   useEffect(() => {
@@ -41,7 +48,7 @@ export function PwaManager() {
           if (logo && isMounted.current) setAppLogoUrl(logo);
         }
       })
-      .catch(() => {}); // Silently fall back to static icon
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -77,22 +84,29 @@ export function PwaManager() {
       });
     }
 
-    // ── 2. Install prompt (shown to ALL visitors, not just logged-in) ────────
+    // ── 2. Capture beforeinstallprompt — store in Zustand for Footer to use ──
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
-      if (isMounted.current) { setDeferredPrompt(e); setShowInstallBanner(true); }
+      if (isMounted.current) setDeferredPrompt(e);
     };
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    // ── 3. Notification permission state ────────────────────────────────────
+    // ── 3. Detect when app is installed ──────────────────────────────────────
+    const handleAppInstalled = () => {
+      if (isMounted.current) { clearDeferredPrompt(); setInstalled(true); }
+    };
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    // ── 4. Notification permission state ────────────────────────────────────
     if ("Notification" in window && isMounted.current) {
       setPermission(Notification.permission);
     }
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
-  }, []);
+  }, [setDeferredPrompt, clearDeferredPrompt, setInstalled]);
 
   // ── Auto-subscribe admins/managers once they log in ────────────────────────
   useEffect(() => {
@@ -109,25 +123,18 @@ export function PwaManager() {
     try {
       const reg = await navigator.serviceWorker.ready;
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      if (!vapidPublicKey) {
-        console.warn("[PWA] NEXT_PUBLIC_VAPID_PUBLIC_KEY not set — push disabled");
-        return;
-      }
+      if (!vapidPublicKey) return;
 
       const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
-      // If an existing subscription was created with a different VAPID key, the
-      // browser throws InvalidStateError. Unsubscribe it first, then resubscribe.
       const existingSub = await reg.pushManager.getSubscription();
       if (existingSub) {
         const existingKey = existingSub.options?.applicationServerKey;
         if (existingKey) {
           const existingKeyArray = new Uint8Array(existingKey as ArrayBuffer);
           if (!existingKeyArray.every((v, i) => v === applicationServerKey[i])) {
-            console.log("[PWA] VAPID key changed — unsubscribing old subscription");
             await existingSub.unsubscribe();
           } else {
-            // Same key, already subscribed
             if (isMounted.current) setIsSubscribed(true);
             return;
           }
@@ -137,16 +144,13 @@ export function PwaManager() {
       }
 
       const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
-      console.log("[PWA] 📡 Push subscription created:", sub.endpoint);
       if (isMounted.current) setIsSubscribed(true);
 
-      const res = await fetch("/api/users/push-subscription", {
+      await fetch("/api/users/push-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subscription: sub.toJSON() }),
       });
-      const data = await res.json();
-      console.log("[PWA] Push subscription saved:", data.message);
     } catch (err) {
       console.warn("[PWA] ❌ Failed to subscribe to Web Push:", err);
     }
@@ -168,20 +172,18 @@ export function PwaManager() {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") { setShowInstallBanner(false); setDeferredPrompt(null); }
+    if (outcome === "accepted") clearDeferredPrompt();
   };
 
-  // Only show the notification prompt to admins/managers who are logged in
   const isStaff = session?.user?.role === "SUPER_ADMIN" || session?.user?.role === "BRANCH_MANAGER";
   const showNotificationPrompt = isStaff && permission === "default";
 
   return (
     <>
-      {/* ── PWA Install Banner (visible to all users) ── */}
-      {showInstallBanner && (
-        <div className="fixed bottom-16 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-[#080d15]/95 backdrop-blur-md border border-white/10 p-4 rounded-2xl shadow-2xl z-50 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-5 duration-300">
+      {/* ── Floating Install Banner — shown when Chrome fires beforeinstallprompt ── */}
+      {showBanner && deferredPrompt && (
+        <div className="fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-[#080d15]/95 backdrop-blur-md border border-white/10 p-4 rounded-2xl shadow-2xl z-50 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-5 duration-300">
           <div className="flex items-center gap-3">
-            {/* Logo — circular, always centered */}
             <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-white/15 bg-[#0d1117] flex items-center justify-center shadow-md">
               <img
                 src={appLogoUrl}
@@ -191,19 +193,19 @@ export function PwaManager() {
               />
             </div>
             <div>
-              <h4 className="font-semibold text-sm text-white">Install HPF Partner App</h4>
-              <p className="text-xs text-white/60">Get real-time order alerts &amp; native mobile experience.</p>
+              <h4 className="font-semibold text-sm text-white">Install the App</h4>
+              <p className="text-xs text-white/60">Get real-time order alerts &amp; faster experience.</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleInstallClick}
-              className="bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-[#080d15] font-bold px-3 py-1.5 rounded-xl text-xs shadow-lg transition-all flex items-center gap-1"
+              className="bg-linear-to-r from-amber-500 to-amber-600 text-[#080d15] font-bold px-3 py-1.5 rounded-xl text-xs shadow-lg transition-all flex items-center gap-1"
             >
               <Download className="w-3.5 h-3.5" /> Install
             </button>
             <button
-              onClick={() => setShowInstallBanner(false)}
+              onClick={() => setShowBanner(false)}
               className="text-white/50 hover:text-white p-1 rounded-lg transition-colors"
             >
               <X className="w-4 h-4" />
