@@ -124,10 +124,17 @@ io.use(async (socket, next) => {
       // Not a NextAuth token, will try jsonwebtoken fallback
     }
 
-    // Fallback: decode as a standard JWT signed with JWT_SECRET or NEXTAUTH_SECRET
+    // Fallback: decode as a standard JWT.
+    // The socket-token route (/api/auth/socket-token) signs with NEXTAUTH_SECRET.
+    // We MUST verify with the same key — NOT JWT_SECRET, which is a separate
+    // internal secret used elsewhere and may differ between Vercel and Render.
     if (!decoded) {
+      const verifySecret = process.env.NEXTAUTH_SECRET;
+      if (!verifySecret) {
+        return next(new Error("Authentication error: NEXTAUTH_SECRET not configured on socket server"));
+      }
       try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET);
+        decoded = jwt.verify(token, verifySecret);
       } catch (e) {
         return next(new Error("Authentication error: Invalid or expired token"));
       }
