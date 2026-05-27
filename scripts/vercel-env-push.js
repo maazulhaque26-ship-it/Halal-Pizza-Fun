@@ -77,7 +77,7 @@ async function main() {
   const vars = parseEnv(ENV_FILE);
 
   // Production overrides
-  const PROD_URL    = "https://halal-pizza-fun.vercel.app";
+  const PROD_URL    = "https://pizzafun.co.in";
   const SOCKET_URL  = "https://hpf-socket-server.onrender.com";
   const SOCKET_KEY  = "N0GB3olCdF9WjrrecHLv8Aawr/bXn3Prss3HB/hN5L0=";
 
