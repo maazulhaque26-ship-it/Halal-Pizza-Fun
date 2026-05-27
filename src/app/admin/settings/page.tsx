@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Save, Loader2, Upload, Palette, Globe, Truck, Image as ImageIcon, X, Plus, User } from "lucide-react";
+import { Save, Loader2, Upload, Palette, Globe, Truck, Image as ImageIcon, X, Plus, User, Crop } from "lucide-react";
 import { toast } from "@/components/ui/Toast";
 import { API } from "@/config/constants";
+import { CircularCropModal } from "@/components/admin/CircularCropModal";
 
 interface SettingsData {
   siteName: string; siteTagline: string; siteDescription: string;
@@ -95,6 +96,92 @@ function ImageUploadField({ label, value, onChange }: { label: string; value: st
           </label>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Logo upload with circular crop step */
+function LogoCropUploadField({ label, value, onChange }: { label: string; value: string; onChange: (url: string) => void }) {
+  const [cropSrc, setCropSrc]   = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setCropSrc(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    // Reset input so the same file can be re-selected after cancel
+    e.target.value = "";
+  };
+
+  const handleCropConfirm = async (blob: Blob) => {
+    setCropSrc(null);
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", new File([blob], "logo-crop.png", { type: "image/png" }));
+      formData.append("folder", "hpf_branding");
+      const res  = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.success) {
+        onChange(data.url);
+        toast.success("Logo uploaded & cropped ✓");
+      } else {
+        toast.error(data.message || "Upload failed");
+      }
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-300 mb-1.5">{label}</label>
+      <div className="flex items-center gap-4">
+        {/* Preview — circular */}
+        <div className="shrink-0 relative group">
+          <div className="w-16 h-16 rounded-full border border-white/15 bg-[#0d1117] overflow-hidden flex items-center justify-center">
+            {value ? (
+              <img src={value} alt="logo" className="w-full h-full object-cover" />
+            ) : (
+              <ImageIcon className="w-5 h-5 text-white/30" />
+            )}
+          </div>
+          {value && (
+            <button
+              onClick={() => onChange("")}
+              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+
+        {/* Buttons */}
+        <div className="flex flex-col gap-2">
+          <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-white/8 border border-white/10 hover:border-primary/50 hover:bg-white/12 text-white/70 text-sm font-semibold rounded-xl transition-colors shadow-sm">
+            {uploading
+              ? <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              : <Crop className="w-4 h-4 text-white/50" />}
+            {uploading ? "Uploading…" : value ? "Re-crop Logo" : "Upload & Crop"}
+            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleFileSelect} disabled={uploading} />
+          </label>
+          <p className="text-[10px] text-white/30 pl-1">Circular crop · drag + zoom to center</p>
+        </div>
+      </div>
+
+      {/* Crop modal */}
+      {cropSrc && (
+        <CircularCropModal
+          src={cropSrc}
+          onConfirm={handleCropConfirm}
+          onClose={() => setCropSrc(null)}
+        />
+      )}
     </div>
   );
 }
@@ -206,12 +293,18 @@ export default function AdminSettingsPage() {
             </Field>
             
             {/* Visual Branding Assets */}
-            <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-4 border-t border-white/8">
-              <ImageUploadField label="Website Logo (Primary)" value={settings.logoUrl || ""} onChange={url => update("logoUrl", url)} />
-              <ImageUploadField label="Mobile Logo (Icon)" value={settings.mobileLogoUrl || ""} onChange={url => update("mobileLogoUrl", url)} />
-              <ImageUploadField label="Favicon (.ico, .png)" value={settings.faviconUrl || ""} onChange={url => update("faviconUrl", url)} />
-              <ImageUploadField label="Dark Mode Logo" value={settings.darkModeLogoUrl || ""} onChange={url => update("darkModeLogoUrl", url)} />
-              <ImageUploadField label="Footer Logo" value={settings.footerLogoUrl || ""} onChange={url => update("footerLogoUrl", url)} />
+            <div className="sm:col-span-2 pt-4 border-t border-white/8">
+              <p className="text-xs text-white/40 mb-4 flex items-center gap-1.5">
+                <Crop className="w-3.5 h-3.5 text-primary" />
+                Logo fields use a circular crop tool — drag &amp; zoom to center your logo perfectly
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <LogoCropUploadField label="Website Logo (Primary)" value={settings.logoUrl || ""} onChange={url => update("logoUrl", url)} />
+                <LogoCropUploadField label="Mobile Logo (Icon)" value={settings.mobileLogoUrl || ""} onChange={url => update("mobileLogoUrl", url)} />
+                <ImageUploadField label="Favicon (.ico, .png)" value={settings.faviconUrl || ""} onChange={url => update("faviconUrl", url)} />
+                <LogoCropUploadField label="Dark Mode Logo" value={settings.darkModeLogoUrl || ""} onChange={url => update("darkModeLogoUrl", url)} />
+                <LogoCropUploadField label="Footer Logo" value={settings.footerLogoUrl || ""} onChange={url => update("footerLogoUrl", url)} />
+              </div>
             </div>
 
             <div className="sm:col-span-2 pt-4 border-t border-white/8">

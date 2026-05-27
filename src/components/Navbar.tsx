@@ -193,9 +193,9 @@ export default function Navbar({ siteName = "Halal Pizza Fun", logoUrl, mobileLo
           <div className="flex items-center gap-5">
             <Link href={ROUTES.HOME} className="flex items-center gap-3 shrink-0">
               {currentLogoUrl !== ASSETS.LOGO || fetchedSettings?.logoUrl ? (
-                <picture className="h-10 w-auto flex items-center">
+                <picture className="flex items-center shrink-0">
                    <source media="(max-width: 768px)" srcSet={currentMobileLogoUrl} />
-                   <img src={currentLogoUrl} alt={displaySiteName} className="h-10 w-auto object-contain" />
+                   <img src={currentLogoUrl} alt={displaySiteName} className="h-10 w-10 object-cover rounded-full" />
                 </picture>
               ) : (
                 <motion.div
