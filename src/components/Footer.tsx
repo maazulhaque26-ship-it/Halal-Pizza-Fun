@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, Camera, MessageCircle, Link2, Smartphone, ArrowRight, Mail, Phone, MapPin, Crown } from "lucide-react";
+import { Globe, Camera, MessageCircle, Link2, ArrowRight, Mail, Phone, MapPin, Crown } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ROUTES, API } from "@/config/constants";
@@ -131,11 +131,67 @@ export default function Footer({
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_right,rgba(212,175,55,0.06),transparent_60%)]" />
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 p-8 md:p-10">
               <div className="flex items-center gap-5 text-center md:text-left">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
-                  style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)" }}
-                >
-                  <Smartphone className="w-7 h-7 text-primary" />
+                {/* Phone + App illustration */}
+                <div className="shrink-0 w-16 h-20 relative">
+                  <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg">
+                    {/* Phone body */}
+                    <rect x="6" y="2" width="52" height="76" rx="9" fill="rgba(15,23,42,0.95)" stroke="rgba(212,175,55,0.5)" strokeWidth="1.5"/>
+                    {/* Side buttons */}
+                    <rect x="3" y="20" width="2" height="10" rx="1" fill="rgba(212,175,55,0.3)"/>
+                    <rect x="3" y="34" width="2" height="10" rx="1" fill="rgba(212,175,55,0.3)"/>
+                    <rect x="59" y="26" width="2" height="14" rx="1" fill="rgba(212,175,55,0.3)"/>
+                    {/* Screen area */}
+                    <rect x="9" y="8" width="46" height="62" rx="5" fill="#0d1829"/>
+                    {/* Dynamic island / notch */}
+                    <rect x="22" y="10" width="20" height="5" rx="2.5" fill="rgba(0,0,0,0.8)"/>
+                    {/* Camera dot */}
+                    <circle cx="37" cy="12.5" r="1.5" fill="rgba(212,175,55,0.25)"/>
+
+                    {/* ── App UI on screen ── */}
+                    {/* App header bar */}
+                    <rect x="9" y="17" width="46" height="11" fill="rgba(212,175,55,0.12)"/>
+                    {/* Logo circle */}
+                    <circle cx="17" cy="22.5" r="3.5" fill="rgba(212,175,55,0.35)" stroke="rgba(212,175,55,0.5)" strokeWidth="0.5"/>
+                    <text x="17" y="24.5" textAnchor="middle" fontSize="4" fontWeight="bold" fill="#D4AF37">H</text>
+                    {/* Site name text */}
+                    <rect x="23" y="21" width="16" height="2" rx="1" fill="rgba(255,255,255,0.5)"/>
+                    {/* Cart icon top right */}
+                    <rect x="47" y="20" width="5" height="5" rx="1" fill="rgba(212,175,55,0.2)" stroke="rgba(212,175,55,0.4)" strokeWidth="0.5"/>
+                    <circle cx="50" cy="19.5" r="1.5" fill="rgba(212,175,55,0.9)"/>
+
+                    {/* Food card 1 */}
+                    <rect x="11" y="31" width="42" height="13" rx="3" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5"/>
+                    {/* Food image placeholder */}
+                    <rect x="13" y="33" width="9" height="9" rx="2" fill="rgba(212,175,55,0.2)"/>
+                    <circle cx="17.5" cy="37.5" r="3" fill="rgba(212,175,55,0.35)"/>
+                    {/* Food name */}
+                    <rect x="25" y="34" width="18" height="2" rx="1" fill="rgba(255,255,255,0.4)"/>
+                    <rect x="25" y="38" width="10" height="1.5" rx="0.75" fill="rgba(212,175,55,0.5)"/>
+                    {/* Price */}
+                    <rect x="25" y="41" width="8" height="1.5" rx="0.75" fill="rgba(255,255,255,0.2)"/>
+                    {/* + button */}
+                    <circle cx="48" cy="37.5" r="3.5" fill="rgba(212,175,55,0.8)"/>
+                    <rect x="46.5" y="37" width="3" height="1" rx="0.5" fill="rgba(0,0,0,0.8)"/>
+                    <rect x="47.5" y="36" width="1" height="3" rx="0.5" fill="rgba(0,0,0,0.8)"/>
+
+                    {/* Food card 2 */}
+                    <rect x="11" y="47" width="42" height="13" rx="3" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5"/>
+                    <rect x="13" y="49" width="9" height="9" rx="2" fill="rgba(212,175,55,0.12)"/>
+                    <circle cx="17.5" cy="53.5" r="3" fill="rgba(212,175,55,0.2)"/>
+                    <rect x="25" y="50" width="14" height="2" rx="1" fill="rgba(255,255,255,0.35)"/>
+                    <rect x="25" y="54" width="9" height="1.5" rx="0.75" fill="rgba(212,175,55,0.4)"/>
+                    <rect x="25" y="57" width="7" height="1.5" rx="0.75" fill="rgba(255,255,255,0.15)"/>
+                    <circle cx="48" cy="53.5" r="3.5" fill="rgba(212,175,55,0.4)" stroke="rgba(212,175,55,0.6)" strokeWidth="0.5"/>
+                    <rect x="46.5" y="53" width="3" height="1" rx="0.5" fill="rgba(212,175,55,0.9)"/>
+                    <rect x="47.5" y="52" width="1" height="3" rx="0.5" fill="rgba(212,175,55,0.9)"/>
+
+                    {/* Order CTA button */}
+                    <rect x="11" y="63" width="42" height="6" rx="3" fill="rgba(212,175,55,0.85)"/>
+                    <rect x="22" y="65.5" width="20" height="2" rx="1" fill="rgba(0,0,0,0.65)"/>
+
+                    {/* Home indicator */}
+                    <rect x="26" y="72" width="12" height="2" rx="1" fill="rgba(255,255,255,0.15)"/>
+                  </svg>
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-white mb-1">Get the {displaySiteName} App</h3>
