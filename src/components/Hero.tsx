@@ -92,7 +92,7 @@ export default function Hero({
       {/* ── Content ── */}
       <motion.div
         style={{ opacity }}
-        className="relative z-10 max-w-5xl w-full px-6 text-center pt-24 pb-16 md:py-0"
+        className="relative z-10 max-w-5xl w-full px-6 text-center pt-28 pb-16 md:pt-32 md:pb-20"
       >
         {/* Main Headline */}
         <motion.h1
