@@ -1,5 +1,8 @@
 "use client";
 
+// Side-effect import — ensures next-auth Session type augmentation
+// (id, role, branchId, permissions) is part of the module graph for ALL pages.
+import "@/lib/auth/augment";
 import { SessionProvider } from "next-auth/react";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {

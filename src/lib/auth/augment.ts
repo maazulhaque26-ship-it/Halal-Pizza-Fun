@@ -1,3 +1,9 @@
+/**
+ * next-auth module augmentation.
+ * Imported as a side-effect in AuthProvider so it is always part of
+ * the TypeScript module graph — guaranteeing the custom Session fields
+ * (id, role, branchId, permissions) are recognised project-wide.
+ */
 import "next-auth";
 
 declare module "next-auth" {
@@ -29,3 +35,7 @@ declare module "next-auth/jwt" {
     permissions?: string[];
   }
 }
+
+// This export makes the file a proper TypeScript module,
+// which is required for `declare module` augmentation to work.
+export {};
