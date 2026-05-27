@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Plus, Trash2, Loader2, X, Save, ShieldAlert, Store, Edit } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Trash2, Loader2, X, Save, ShieldAlert, Store, Edit, AlertTriangle } from "lucide-react";
 import { toast } from "@/components/ui/Toast";
 import { API, ROLES } from "@/config/constants";
 
@@ -21,6 +21,8 @@ export default function AdminUsersPage() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<any>(empty);
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchAll = async () => {
     try {
@@ -62,19 +64,25 @@ export default function AdminUsersPage() {
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`${API.USERS}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API.USERS}/${deleteTarget._id}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
-        toast.success("User deleted");
+        toast.success(`${deleteTarget.name} removed`);
+        setDeleteTarget(null);
+        // Optimistically remove from list immediately
+        setUsers(prev => prev.filter(u => u._id !== deleteTarget._id));
         fetchAll();
       } else {
         toast.error(data.message || "Delete failed");
       }
     } catch {
       toast.error("Delete failed");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -145,7 +153,7 @@ export default function AdminUsersPage() {
                           }} className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" title="Edit">
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDelete(u._id)} className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" title="Delete">
+                          <button onClick={() => setDeleteTarget(u)} className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" title="Delete">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -159,7 +167,57 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* ── Delete Confirm Modal ── */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 10 }}
+              className="w-full max-w-sm rounded-2xl p-6 shadow-2xl"
+              style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.1)" }}
+            >
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                  <AlertTriangle className="w-7 h-7 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-white mb-1">Delete User?</h3>
+                  <p className="text-sm text-white/50">
+                    Remove <span className="font-bold text-white">{deleteTarget.name}</span> ({deleteTarget.role}) permanently?
+                    This cannot be undone.
+                  </p>
+                </div>
+                <div className="flex gap-3 w-full pt-2">
+                  <button
+                    onClick={() => setDeleteTarget(null)}
+                    disabled={deleting}
+                    className="flex-1 py-3 border border-white/10 text-gray-400 hover:bg-white/5 rounded-xl font-semibold text-sm transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white rounded-xl font-bold text-sm transition-colors disabled:opacity-60 shadow-lg shadow-red-500/20"
+                  >
+                    {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    {deleting ? "Deleting…" : "Yes, Delete"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}

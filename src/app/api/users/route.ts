@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const role = searchParams.get("role");
 
-    const query: any = {};
+    const query: any = { isArchived: { $ne: true } };
     if (role) query.role = role;
 
     const [users, total] = await Promise.all([
