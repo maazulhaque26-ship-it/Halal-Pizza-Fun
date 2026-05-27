@@ -92,6 +92,12 @@ body {
   @apply antialiased;
 }
 
+/* ── PWA / Mobile: eliminate 300ms tap delay on all interactive elements ── */
+button, a, input, select, textarea, label, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* ── Glass Effects ── */
 .glass {
   background: rgba(17, 24, 39, 0.7);

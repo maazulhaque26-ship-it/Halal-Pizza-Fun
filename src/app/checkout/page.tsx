@@ -349,30 +349,45 @@ export default function CheckoutPage() {
               </h2>
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.productId} className="flex gap-3 items-start">
+                  <div key={item.variantId ? `${item.productId}:${item.variantId}` : item.productId} className="flex gap-3 items-start">
                     <img src={item.image} alt={item.name} className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl object-cover shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <p className="font-bold text-white text-sm line-clamp-2 leading-tight">{item.name}</p>
-                        <button onClick={() => removeItem(item.productId)} className="text-red-400 hover:text-red-500 p-1 shrink-0 -mt-0.5 active:scale-90 transition-transform">
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.productId, item.variantId)}
+                          className="text-red-400 hover:text-red-500 p-2 shrink-0 -mt-1 -mr-1 rounded-xl transition-colors"
+                          style={{ touchAction: "manipulation" }}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                       <p className="text-xs text-white/40 mt-0.5">₹{item.price} each</p>
                       <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1">
+                          {/* Minus — full 44px touch target */}
                           <button
-                            onClick={() => item.quantity > 1 ? updateQuantity(item.productId, item.quantity - 1) : removeItem(item.productId)}
-                            className="w-7 h-7 rounded-full bg-white/8 hover:bg-white/15 flex items-center justify-center active:scale-90 transition-transform"
+                            type="button"
+                            onClick={() =>
+                              item.quantity > 1
+                                ? updateQuantity(item.productId, item.quantity - 1, item.variantId)
+                                : removeItem(item.productId, item.variantId)
+                            }
+                            className="w-11 h-11 rounded-full bg-white/8 hover:bg-white/15 active:bg-white/25 flex items-center justify-center transition-colors"
+                            style={{ touchAction: "manipulation" }}
                           >
-                            <Minus className="w-3 h-3" />
+                            <Minus className="w-3.5 h-3.5 text-white/80" />
                           </button>
-                          <span className="w-6 text-center font-bold text-white/90 text-sm">{item.quantity}</span>
+                          <span className="w-7 text-center font-black text-white text-sm tabular-nums">{item.quantity}</span>
+                          {/* Plus — full 44px touch target */}
                           <button
-                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                            className="w-7 h-7 rounded-full bg-white/8 hover:bg-white/15 flex items-center justify-center active:scale-90 transition-transform"
+                            type="button"
+                            onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantId)}
+                            className="w-11 h-11 rounded-full bg-primary/20 hover:bg-primary/30 active:bg-primary/40 flex items-center justify-center transition-colors"
+                            style={{ touchAction: "manipulation" }}
                           >
-                            <Plus className="w-3 h-3" />
+                            <Plus className="w-3.5 h-3.5 text-primary" />
                           </button>
                         </div>
                         <p className="font-black text-white text-sm">₹{(item.price * item.quantity).toFixed(2)}</p>
