@@ -5,14 +5,19 @@
 
 export interface EmailBranding {
   appName: string;
+  tagline: string;
   logoUrl: string;
+  headerFoodImageUrl: string;
   primaryColor: string;
   accentColor: string;
+  darkColor: string;
   supportEmail: string;
+  phone: string;
   websiteUrl: string;
   socialLinks: {
     facebook?: string;
     instagram?: string;
+    whatsapp?: string;
     twitter?: string;
     youtube?: string;
   };
@@ -34,13 +39,24 @@ export function getBranding(settings?: Record<string, any> | null): EmailBrandin
       process.env.NEXT_PUBLIC_APP_NAME ||
       "Halal Pizza Fun",
 
+    tagline:
+      settings?.tagline ||
+      "Delicious. Halal. Always.",
+
     logoUrl:
       settings?.mobileLogoUrl ||
       settings?.logoUrl ||
       `${appUrl}/icons/icon-192x192.png`,
 
-    primaryColor: settings?.theme?.primaryColor || "#f59e0b",
-    accentColor: settings?.theme?.accentColor || "#d97706",
+    // Food hero image shown in email header (right side pizza photo)
+    // Admin can set this via Settings → Email Header Image
+    headerFoodImageUrl:
+      settings?.emailHeaderImageUrl ||
+      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=240&h=200&fit=crop&q=80",
+
+    primaryColor: settings?.theme?.primaryColor || "#f4813f",
+    accentColor: settings?.theme?.accentColor || "#2e7d52",
+    darkColor: "#1a3320",
 
     supportEmail:
       settings?.contactEmail ||
@@ -48,13 +64,19 @@ export function getBranding(settings?: Record<string, any> | null): EmailBrandin
       process.env.EMAIL_USER ||
       "",
 
+    phone:
+      settings?.phone ||
+      settings?.contactPhone ||
+      "",
+
     websiteUrl: appUrl,
 
     socialLinks: {
-      facebook: settings?.socialLinks?.facebook || undefined,
+      facebook:  settings?.socialLinks?.facebook  || undefined,
       instagram: settings?.socialLinks?.instagram || undefined,
-      twitter: settings?.socialLinks?.twitter || undefined,
-      youtube: settings?.socialLinks?.youtube || undefined,
+      whatsapp:  settings?.socialLinks?.whatsapp  || undefined,
+      twitter:   settings?.socialLinks?.twitter   || undefined,
+      youtube:   settings?.socialLinks?.youtube   || undefined,
     },
   };
 }
