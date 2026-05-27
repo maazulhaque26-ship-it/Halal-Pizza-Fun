@@ -54,6 +54,13 @@ curl_headers.txt
 curl_out.html
 replace_hpf.js
 
+# scripts with embedded secrets — local-use only
+scripts/github-set-secrets.js
+scripts/push-seed-workflow.js
+scripts/push-workflow.js
+scripts/vercel-env-push.js
+.claude/
+
 # internal docs (not part of the public repo)
 CRITICAL_FIXES.md
 DEPLOYMENT_CHECKLIST.md
@@ -63,3 +70,5 @@ IMPLEMENTATION_SUMMARY.md
 QA_AUDIT_REPORT.md
 QA_TESTING_CHECKLIST.md
 QUICK_START.md
+
+.vercel

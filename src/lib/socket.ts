@@ -61,6 +61,11 @@ const SOCKET_URL = resolveSocketUrl();
 // ─── Singleton ────────────────────────────────────────────────────────────────
 let socket: Socket | null = null;
 let connectErrorCount = 0;
+// Circuit-breaker: after this many consecutive auth-error JWT refreshes without
+// a successful connect, stop hammering the token endpoint and let the socket
+// retry with the last token on its own exponential-backoff schedule.
+let authRefreshCount = 0;
+const AUTH_REFRESH_LIMIT = 3;
 
 export function getSocket(): Socket {
   // SSR safety: never instantiate on the server
@@ -84,7 +89,8 @@ export function getSocket(): Socket {
     // ── Global lifecycle logging ────────────────────────────────────────────
     socket.on("connect", () => {
       connectErrorCount = 0;
-      console.log(`[Socket] Connected  id=${socket!.id}  url=${SOCKET_URL}`);
+      authRefreshCount = 0; // reset circuit breaker on successful connect
+      console.log(`[Socket] ✅ Connected  id=${socket!.id}  url=${SOCKET_URL}`);
     });
 
     socket.on("connect_error", async (err) => {
@@ -93,7 +99,6 @@ export function getSocket(): Socket {
         console.warn(`[Socket] connect_error #${connectErrorCount}: ${err.message}  url=${SOCKET_URL}`);
       }
 
-      // Token expired or rejected → refresh before the next reconnect attempt
       const isAuthError =
         err.message.includes("expired") ||
         err.message.includes("Invalid") ||
@@ -101,15 +106,31 @@ export function getSocket(): Socket {
         err.message.includes("Authentication");
 
       if (isAuthError) {
+        // Circuit breaker: if we've refreshed AUTH_REFRESH_LIMIT times without
+        // connecting, the server's NEXTAUTH_SECRET likely differs from ours.
+        // Stop refreshing to avoid spamming /api/auth/socket-token every 2s.
+        if (authRefreshCount >= AUTH_REFRESH_LIMIT) {
+          if (authRefreshCount === AUTH_REFRESH_LIMIT) {
+            console.error(
+              `[Socket] ❌ Auth still failing after ${AUTH_REFRESH_LIMIT} JWT refreshes. ` +
+              "Verify that NEXTAUTH_SECRET is identical on both Vercel and the Render socket server. " +
+              "Socket will keep retrying but JWT refresh is paused to avoid spamming the auth endpoint."
+            );
+          }
+          authRefreshCount++; // keep incrementing so we don't repeat the error log
+          return;
+        }
+
         try {
           const res = await fetch("/api/auth/socket-token");
           if (res.ok) {
             const { token } = await res.json();
             (socket as any).auth = { token };
-            console.log("[Socket] JWT refreshed — next reconnect will use fresh token");
+            authRefreshCount++;
+            console.log(`[Socket] JWT refreshed (attempt ${authRefreshCount}/${AUTH_REFRESH_LIMIT})`);
           }
         } catch {
-          // fetch failed (offline) — keep retrying; token refreshed on next attempt
+          // Offline or server error — skip this refresh cycle
         }
       }
     });
@@ -143,6 +164,10 @@ export async function connectSocket(): Promise<Socket> {
 
   // Already connected — nothing to do
   if (s.connected) return s;
+
+  // Reset circuit breaker on explicit connect requests so a new session
+  // gets a clean slate of auth refresh attempts.
+  authRefreshCount = 0;
 
   // Fetch auth token before connecting
   try {

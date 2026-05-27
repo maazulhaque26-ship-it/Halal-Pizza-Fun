@@ -31,47 +31,44 @@ export function OrderPopup() {
     }
   }, [setActiveOrder]);
 
-  useEffect(() => {
-    if (!session?.user) return;
+  // Extract primitives — using the session *object* as a dep causes the effect
+  // to re-run (and call connectSocket() again) on every NextAuth internal update
+  // even when the user's id/role hasn't changed.
+  const userId   = session?.user?.id;
+  const userRole = session?.user?.role;
+  const branchId = (session?.user as any)?.branchId;
 
-    // Only BRANCH_MANAGER and SUPER_ADMIN need real-time order notifications.
-    // Customers have no socket rooms to join, so skip connecting entirely to
-    // avoid authentication errors and unnecessary reconnection spam.
-    const role = session.user.role;
-    if (role !== "BRANCH_MANAGER" && role !== "SUPER_ADMIN") return;
+  useEffect(() => {
+    if (!userId) return;
+    if (userRole !== "BRANCH_MANAGER" && userRole !== "SUPER_ADMIN") return;
 
     const socket = getSocket();
 
     if (!socket.connected) {
       console.log("[OrderPopup] Connecting socket...");
-      connectSocket(); // fetches JWT, sets socket.auth, then connects
+      connectSocket();
     }
 
-    // ── Join the correct rooms once connected ──────────────────────────────
     const joinRooms = () => {
-      if (session.user.role === "BRANCH_MANAGER" && session.user.branchId) {
-        console.log(`[OrderPopup] 🏢 Emitting join_branch for ${session.user.branchId}`);
-        socket.emit("join_branch", session.user.branchId);
-      } else if (session.user.role === "SUPER_ADMIN") {
+      if (userRole === "BRANCH_MANAGER" && branchId) {
+        console.log(`[OrderPopup] 🏢 Emitting join_branch for ${branchId}`);
+        socket.emit("join_branch", branchId);
+      } else if (userRole === "SUPER_ADMIN") {
         console.log("[OrderPopup] 👑 Emitting join_admin");
         socket.emit("join_admin");
       }
     };
 
-    if (socket.connected) {
-      joinRooms();
-    } else {
-      socket.once("connect", joinRooms);
-    }
+    if (socket.connected) joinRooms();
+    else socket.once("connect", joinRooms);
 
-    // ── Event listener ─────────────────────────────────────────────────────
     socket.on("NEW_ORDER", handleNewOrder);
 
     return () => {
       socket.off("NEW_ORDER", handleNewOrder);
       socket.off("connect", joinRooms);
     };
-  }, [session, handleNewOrder]);
+  }, [userId, userRole, branchId, handleNewOrder]);
 
   const handleAction = async (status: "ACCEPTED" | "REJECTED") => {
     if (!activeOrder) return;

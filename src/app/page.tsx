@@ -1,3 +1,7 @@
+// Always fetch fresh data so admin-controlled content (hero background, banners,
+// settings) is visible immediately after saving — never serve a stale Next.js cache.
+export const dynamic = "force-dynamic";
+
 import { getSettings } from "@/lib/services/SettingsService";
 import { connectDB } from "@/lib/db/mongoose";
 import { Category } from "@/lib/db/models/Category";

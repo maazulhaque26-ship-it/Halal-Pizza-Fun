@@ -92,7 +92,10 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en" className={`scroll-smooth ${plusJakarta.variable} ${playfair.variable}`} data-scroll-behavior="smooth">
-      <body className="font-sans antialiased" style={{ fontFamily: "var(--font-jakarta), 'Inter', system-ui, sans-serif" }}>
+      {/* suppressHydrationWarning: browser extensions (Grammarly, password managers)
+          inject attributes/text into the DOM after SSR, causing React error #418.
+          This tells React to ignore those mismatches on the body element only. */}
+      <body suppressHydrationWarning className="font-sans antialiased" style={{ fontFamily: "var(--font-jakarta), 'Inter', system-ui, sans-serif" }}>
         <CsrfProvider>
           <AuthProvider>
             {children}
