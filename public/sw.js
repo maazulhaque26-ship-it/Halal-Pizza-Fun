@@ -1,6 +1,6 @@
 // Cache version — bump on every deploy that changes static assets.
-// v7: hardened push notifications (unique tags, pushsubscriptionchange, improved click)
-const CACHE_NAME = 'hpf-pwa-v7';
+// v8: force-bust stale socket.io transport config + CORS fix deploy
+const CACHE_NAME = 'hpf-pwa-v8';
 const OFFLINE_URL = '/offline.html';
 
 // Only precache guaranteed-static files.
@@ -40,7 +40,9 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // 1. Socket.IO — MUST bypass SW (corrupts wire protocol)
+  //    Covers both same-origin proxy paths and direct Render connections.
   if (url.pathname.startsWith('/socket.io/')) return;
+  if (url.hostname.includes('onrender.com')) return;
 
   // 2. API routes — always network only; never cache auth/session/order data
   if (url.pathname.startsWith('/api/')) return;

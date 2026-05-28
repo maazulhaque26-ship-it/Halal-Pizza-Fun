@@ -77,20 +77,32 @@ export function getSocket(): Socket {
     socket = io(SOCKET_URL, {
       withCredentials: true,
       autoConnect: false,           // Always call connectSocket(), not connect()
-      transports: ["websocket", "polling"], // WebSocket first; polling as TCP fallback
+      transports: ["polling", "websocket"], // HTTP polling first (prevents proxy handshake errors); upgrades to WebSocket automatically
       reconnection: true,
       reconnectionAttempts: Infinity, // Survive Render free-tier cold starts
-      reconnectionDelay: 2000,
+      reconnectionDelay: 1000,
       reconnectionDelayMax: 30000,  // Cap at 30s — long enough for Render wake-up
       timeout: 20000,               // 20s handshake timeout (8s was too low for mobile)
       upgrade: true,
+      rememberUpgrade: false,       // Never skip polling handshake — prevents 400 on Render proxy
     });
 
     // ── Global lifecycle logging ────────────────────────────────────────────
     socket.on("connect", () => {
       connectErrorCount = 0;
       authRefreshCount = 0; // reset circuit breaker on successful connect
-      console.log(`[Socket] ✅ Connected  id=${socket!.id}  url=${SOCKET_URL}`);
+      const transport = (socket as any)?.io?.engine?.transport?.name || "unknown";
+      console.log(`[Socket] ✅ Connected  id=${socket!.id}  transport=${transport}  url=${SOCKET_URL}`);
+    });
+
+    // Log when transport upgrades from polling → websocket
+    socket.io.on("open", () => {
+      const engine = (socket as any)?.io?.engine;
+      if (engine) {
+        engine.on("upgrade", (transport: any) => {
+          console.log(`[Socket] ⬆️ Upgraded to: ${transport?.name || transport}`);
+        });
+      }
     });
 
     socket.on("connect_error", async (err) => {

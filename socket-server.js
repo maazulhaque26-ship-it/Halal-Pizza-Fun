@@ -31,6 +31,29 @@ const corsOriginFn = (origin, callback) => {
   // Allow requests with no origin (server-to-server, Render health checks)
   if (!origin) return callback(null, true);
   if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+
+  try {
+    const parsed = new URL(origin);
+    const hostname = parsed.hostname;
+
+    // Allow localhost and local loopback
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return callback(null, true);
+    }
+
+    // Allow pizzafun.co.in production domain and any subdomains (e.g. www.pizzafun.co.in)
+    if (hostname === "pizzafun.co.in" || hostname.endsWith(".pizzafun.co.in")) {
+      return callback(null, true);
+    }
+
+    // Allow vercel.app domains (including preview environments)
+    if (hostname === "vercel.app" || hostname.endsWith(".vercel.app")) {
+      return callback(null, true);
+    }
+  } catch (e) {
+    // Fall back to standard ALLOWED_ORIGINS check if URL parsing fails
+  }
+
   callback(new Error(`CORS: origin '${origin}' not allowed`));
 };
 
@@ -72,8 +95,8 @@ const io = new Server(server, {
   // Render's occasional latency spikes without spurious disconnects.
   pingTimeout: 60000,
   pingInterval: 25000,
-  // Allow both WebSocket and polling. Clients prefer WebSocket first.
-  transports: ["websocket", "polling"],
+  // Allow both WebSocket and polling. Polling first ensures stable handshake, then upgrades.
+  transports: ["polling", "websocket"],
 });
 
 // Helper to parse cookies
@@ -182,7 +205,13 @@ setInterval(() => {
 }, 10 * 60 * 1000);
 
 io.on("connection", (socket) => {
-  console.log(`🔌 Secured Client connected: ${socket.id} (User: ${socket.userId}, Role: ${socket.role})`);
+  const transport = socket.conn?.transport?.name || "unknown";
+  console.log(`🔌 Secured Client connected: ${socket.id} (User: ${socket.userId}, Role: ${socket.role}, Transport: ${transport})`);
+
+  // Log transport upgrades (polling → websocket)
+  socket.conn?.on("upgrade", (transport) => {
+    console.log(`⬆️ Client ${socket.id} upgraded to: ${transport.name}`);
+  });
 
   // Secure Auto-join rooms based on verified JWT claims
   if (socket.role === "BRANCH_MANAGER" && socket.branchId) {
@@ -619,4 +648,6 @@ app.post("/api/notify/inventory", validateApiKey, (req, res) => {
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
   console.log(`⚡ Secured Socket.IO server running on port ${PORT}`);
+  console.log(`📡 Allowed origins: ${JSON.stringify(ALLOWED_ORIGINS)}`);
+  console.log(`🔧 Transports: polling, websocket (polling-first)`);
 });
