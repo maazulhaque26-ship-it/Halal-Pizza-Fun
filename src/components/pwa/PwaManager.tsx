@@ -26,98 +26,6 @@ export function PwaManager() {
   const [appLogoUrl, setAppLogoUrl] = useState<string>(FALLBACK_ICON);
   const isMounted = useRef(true);
 
-  useEffect(() => {
-    isMounted.current = true;
-    return () => { isMounted.current = false; };
-  }, []);
-
-  // Check if already installed
-  useEffect(() => {
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setInstalled(true);
-    }
-  }, [setInstalled]);
-
-  // Fetch admin's uploaded logo to use in the install banner
-  useEffect(() => {
-    fetch("/api/settings", { cache: "no-store" })
-      .then(r => r.json())
-      .then(d => {
-        if (d.success) {
-          const logo = d.data?.mobileLogoUrl || d.data?.logoUrl;
-          if (logo && isMounted.current) setAppLogoUrl(logo);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    // ── 1. Service Worker registration (production only) ──────────────────────
-    if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((reg) => {
-          console.log("[PWA] ✅ Service Worker registered, scope:", reg.scope);
-          reg.update().catch(() => {});
-
-          const activateWaiting = (sw: ServiceWorker) => sw.postMessage({ type: "SKIP_WAITING" });
-          if (reg.waiting) activateWaiting(reg.waiting);
-          reg.addEventListener("updatefound", () => {
-            const newSW = reg.installing;
-            if (!newSW) return;
-            newSW.addEventListener("statechange", () => {
-              if (newSW.state === "installed" && navigator.serviceWorker.controller) activateWaiting(newSW);
-            });
-          });
-
-          reg.pushManager.getSubscription().then((sub) => {
-            if (sub && isMounted.current) setIsSubscribed(true);
-          });
-        })
-        .catch((err) => console.warn("[PWA] ❌ SW registration failed:", err));
-
-      let reloading = false;
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (reloading) return;
-        reloading = true;
-        window.location.reload();
-      });
-    }
-
-    // ── 2. Capture beforeinstallprompt — store in Zustand for Footer to use ──
-    const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault();
-      if (isMounted.current) setDeferredPrompt(e);
-    };
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    // ── 3. Detect when app is installed ──────────────────────────────────────
-    const handleAppInstalled = () => {
-      if (isMounted.current) { clearDeferredPrompt(); setInstalled(true); }
-    };
-    window.addEventListener("appinstalled", handleAppInstalled);
-
-    // ── 4. Notification permission state ────────────────────────────────────
-    if ("Notification" in window && isMounted.current) {
-      setPermission(Notification.permission);
-    }
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-      window.removeEventListener("appinstalled", handleAppInstalled);
-    };
-  }, [setDeferredPrompt, clearDeferredPrompt, setInstalled]);
-
-  // ── Auto-subscribe admins/managers once they log in ────────────────────────
-  useEffect(() => {
-    if (!session?.user) return;
-    const role = session.user.role;
-    if (role !== "SUPER_ADMIN" && role !== "BRANCH_MANAGER") return;
-    if (isSubscribed) return;
-    if (!("Notification" in window) || Notification.permission !== "granted") return;
-    subscribeInternal();
-  }, [session, isSubscribed]);
-
   const subscribeInternal = async () => {
     if (!("serviceWorker" in navigator)) return;
     try {
@@ -155,6 +63,112 @@ export function PwaManager() {
       console.warn("[PWA] ❌ Failed to subscribe to Web Push:", err);
     }
   };
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
+
+  // Check if already installed
+  useEffect(() => {
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setInstalled(true);
+    }
+  }, [setInstalled]);
+
+  // Fetch admin's uploaded logo to use in the install banner
+  useEffect(() => {
+    fetch("/api/settings", { cache: "no-store" })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          const logo = d.data?.mobileLogoUrl || d.data?.logoUrl;
+          if (logo && isMounted.current) setAppLogoUrl(logo);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    // ── 1. Service Worker registration ──────────────────────────────────────
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((reg) => {
+          console.log("[PWA] ✅ Service Worker registered, scope:", reg.scope);
+          reg.update().catch(() => {});
+
+          const activateWaiting = (sw: ServiceWorker) => sw.postMessage({ type: "SKIP_WAITING" });
+          if (reg.waiting) activateWaiting(reg.waiting);
+          reg.addEventListener("updatefound", () => {
+            const newSW = reg.installing;
+            if (!newSW) return;
+            newSW.addEventListener("statechange", () => {
+              if (newSW.state === "installed" && navigator.serviceWorker.controller) activateWaiting(newSW);
+            });
+          });
+
+          reg.pushManager.getSubscription().then((sub) => {
+            if (sub && isMounted.current) setIsSubscribed(true);
+          });
+        })
+        .catch((err) => console.warn("[PWA] ❌ SW registration failed:", err));
+
+      // ── Handle pushsubscriptionchange fallback message from SW ───────────
+      // When pushsubscriptionchange fires on a closed app, the SW tries to
+      // resubscribe itself via /api/push/resubscribe. If that fails (e.g.
+      // the old endpoint was never in the PushSubscription DB), the SW
+      // messages active clients to re-subscribe via the authenticated flow.
+      const handleSwMessage = (event: MessageEvent) => {
+        if (event.data?.type === "PUSH_RESUBSCRIBE_REQUIRED") {
+          console.log("[PWA] 🔄 SW requested resubscription");
+          if (isMounted.current) subscribeInternal();
+        }
+      };
+      navigator.serviceWorker.addEventListener("message", handleSwMessage);
+
+      let reloading = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (reloading) return;
+        reloading = true;
+        window.location.reload();
+      });
+    }
+
+    // ── 2. Capture beforeinstallprompt — store in Zustand for Footer to use ──
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      if (isMounted.current) setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    // ── 3. Detect when app is installed ──────────────────────────────────────
+    const handleAppInstalled = () => {
+      if (isMounted.current) { clearDeferredPrompt(); setInstalled(true); }
+    };
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    // ── 4. Notification permission state ────────────────────────────────────
+    if ("Notification" in window && isMounted.current) {
+      setPermission(Notification.permission);
+    }
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+      // Note: serviceWorker message listener is automatically GC'd with the component
+    };
+  }, [setDeferredPrompt, clearDeferredPrompt, setInstalled]);
+
+  // ── Auto-subscribe admins/managers once they log in ────────────────────────
+  useEffect(() => {
+    if (!session?.user) return;
+    const role = session.user.role;
+    if (role !== "SUPER_ADMIN" && role !== "BRANCH_MANAGER") return;
+    if (isSubscribed) return;
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    subscribeInternal();
+  }, [session, isSubscribed]);
 
   const subscribeToPush = async () => {
     if (!("serviceWorker" in navigator)) return;

@@ -9,6 +9,7 @@ import { getSocket, connectSocket } from "@/lib/socket";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ROLES } from "@/config/constants";
+import Link from "next/link";
 
 // Mock delivery data for the dashboard
 const MOCK_ASSIGNED_ORDERS = [
@@ -56,7 +57,7 @@ export default function DeliveryDashboard() {
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-black text-white mb-2">Unauthorized Access</h1>
           <p className="text-gray-400 mb-6">Your account is not authorized as a delivery partner.</p>
-          <a href="/" className="bg-background/10 text-white px-6 py-3 rounded-xl font-bold w-full block hover:bg-background/20 transition-colors">Return Home</a>
+          <Link href="/" className="bg-background/10 text-white px-6 py-3 rounded-xl font-bold w-full block hover:bg-background/20 transition-colors">Return Home</Link>
         </div>
       </div>
     );
@@ -86,7 +87,7 @@ export default function DeliveryDashboard() {
           <Package className="w-16 h-16 text-primary mx-auto mb-4" />
           <h1 className="text-2xl font-black text-white mb-2">Delivery Partner Portal</h1>
           <p className="text-gray-400 mb-6">Please log in to view your assigned deliveries and earnings.</p>
-          <a href="/auth/login" className="bg-primary text-black px-6 py-3 rounded-xl font-bold w-full block hover:bg-accent transition-colors">Sign In</a>
+          <Link href="/auth/login" className="bg-primary text-black px-6 py-3 rounded-xl font-bold w-full block hover:bg-accent transition-colors">Sign In</Link>
         </div>
       </div>
     );

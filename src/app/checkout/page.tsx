@@ -80,6 +80,24 @@ export default function CheckoutPage() {
   const taxAmount = (taxableAmount * taxPct) / 100;
   const total = taxableAmount + deliveryFee + taxAmount;
 
+  // ── Fetch delivery estimate from server for manual branch ─────────────────
+  const fetchEstimate = useCallback(async (branchId: string) => {
+    setEstimateLoading(true);
+    try {
+      const res = await fetch(`${API.DELIVERY_ESTIMATE}?branchId=${branchId}`);
+      const data = await res.json();
+      if (data.success) {
+        setEstimate(data);
+      } else {
+        toast.error(data.message || "Failed to load delivery estimate");
+      }
+    } catch {
+      toast.error("Could not calculate delivery fee. Please try again.");
+    } finally {
+      setEstimateLoading(false);
+    }
+  }, []);
+
   // ── Fetch branches and settings ────────────────────────────────────────────────
   useEffect(() => {
     fetch(API.BRANCHES)
@@ -139,24 +157,6 @@ export default function CheckoutPage() {
       })
       .catch(() => {});
   }, [items, removeItem]);
-
-  // ── Fetch delivery estimate from server for manual branch ─────────────────
-  const fetchEstimate = useCallback(async (branchId: string) => {
-    setEstimateLoading(true);
-    try {
-      const res = await fetch(`${API.DELIVERY_ESTIMATE}?branchId=${branchId}`);
-      const data = await res.json();
-      if (data.success) {
-        setEstimate(data);
-      } else {
-        toast.error(data.message || "Failed to load delivery estimate");
-      }
-    } catch {
-      toast.error("Could not calculate delivery fee. Please try again.");
-    } finally {
-      setEstimateLoading(false);
-    }
-  }, []);
 
   // ── Handle branch selection change ────────────────────────────────────────
   const handleBranchSelect = (branchId: string) => {

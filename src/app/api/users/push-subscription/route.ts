@@ -3,12 +3,18 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/options";
 import { connectDB } from "@/lib/db/mongoose";
 import { User } from "@/lib/db/models/User";
+import { PushSubscription } from "@/lib/db/models/PushSubscription";
+import mongoose from "mongoose";
 
 /**
  * POST /api/users/push-subscription
  * Body: { subscription: PushSubscriptionJSON }
- * Saves a push subscription to the authenticated user's notificationTokens array.
- * Idempotent — will not add duplicates.
+ *
+ * Saves subscription to BOTH:
+ *   1. User.notificationTokens (existing — backward compat)
+ *   2. PushSubscription collection (new — queryable, role-aware)
+ *
+ * Idempotent — safe to call multiple times.
  */
 export async function POST(req: Request) {
   try {
@@ -20,23 +26,57 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { subscription } = body;
 
-    if (!subscription?.endpoint) {
+    if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
       return NextResponse.json({ success: false, message: "Invalid push subscription" }, { status: 400 });
     }
 
     await connectDB();
 
+    const userId = session.user.id;
+    const role   = (session.user as any).role as string;
+    const branchId = (session.user as any).branchId as string | undefined;
+
     const tokenStr = JSON.stringify(subscription);
 
-    // Add to array only if not already present (avoid duplicate subscriptions)
+    // ── 1. Existing behavior: save to User.notificationTokens (backward compat) ──
     await User.updateOne(
-      { _id: session.user.id, notificationTokens: { $ne: tokenStr } },
+      { _id: userId, notificationTokens: { $ne: tokenStr } },
       { $push: { notificationTokens: tokenStr } }
     );
 
-    console.log(`[PushSub] ✅ Subscription saved for user ${session.user.email}`);
+    // ── 2. New: upsert into PushSubscription collection ────────────────────────
+    // findOneAndUpdate with upsert prevents duplicate endpoints.
+    // If the endpoint already exists (same browser/device), just update metadata.
+    const ua = req.headers.get("user-agent") || "";
+    const deviceInfo = ua.slice(0, 300); // Truncate — enough for debugging
+
+    await PushSubscription.findOneAndUpdate(
+      { endpoint: subscription.endpoint },
+      {
+        $set: {
+          userId: new mongoose.Types.ObjectId(userId),
+          role,
+          branchId: branchId ? new mongoose.Types.ObjectId(branchId) : undefined,
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: subscription.keys.p256dh,
+            auth: subscription.keys.auth,
+          },
+          deviceInfo,
+          isActive: true,
+          lastUsedAt: new Date(),
+        },
+      },
+      { upsert: true, new: true }
+    );
+
+    console.log(`[PushSub] ✅ Subscription saved for ${session.user.email} (role: ${role}${branchId ? `, branch: ${branchId}` : ""})`);
     return NextResponse.json({ success: true, message: "Push subscription registered" });
   } catch (error: any) {
+    // 11000 = duplicate key on endpoint — already exists, not an error
+    if (error?.code === 11000) {
+      return NextResponse.json({ success: true, message: "Subscription already registered" });
+    }
     console.error("[PushSub] POST error:", error);
     return NextResponse.json({ success: false, message: error.message || "Server error" }, { status: 500 });
   }
@@ -45,7 +85,7 @@ export async function POST(req: Request) {
 /**
  * DELETE /api/users/push-subscription
  * Body: { endpoint: string }
- * Removes a specific push subscription by endpoint.
+ * Removes subscription from both storage locations.
  */
 export async function DELETE(req: Request) {
   try {
@@ -63,7 +103,7 @@ export async function DELETE(req: Request) {
 
     await connectDB();
 
-    // Pull any token whose JSON contains this endpoint
+    // ── 1. Remove from User.notificationTokens ─────────────────────────────
     const user = await User.findById(session.user.id).select("notificationTokens");
     if (user?.notificationTokens) {
       const matching = user.notificationTokens.filter((t: string) => {
@@ -76,6 +116,12 @@ export async function DELETE(req: Request) {
         );
       }
     }
+
+    // ── 2. Deactivate in PushSubscription collection ──────────────────────
+    await PushSubscription.updateOne(
+      { endpoint, userId: new mongoose.Types.ObjectId(session.user.id) },
+      { $set: { isActive: false } }
+    );
 
     console.log(`[PushSub] 🗑️ Subscription removed for user ${session.user.email}`);
     return NextResponse.json({ success: true, message: "Push subscription removed" });

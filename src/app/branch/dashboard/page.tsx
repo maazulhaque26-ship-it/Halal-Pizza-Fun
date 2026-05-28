@@ -34,7 +34,10 @@ export default function BranchDashboardPage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [socketConnected, setSocketConnected] = useState(false);
   const ordersRef = useRef<Order[]>(orders);
-  ordersRef.current = orders;
+
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
 
   const fetchOrders = useCallback(async () => {
     if (!session?.user) return;

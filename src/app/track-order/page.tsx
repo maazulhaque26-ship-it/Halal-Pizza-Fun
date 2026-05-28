@@ -6,6 +6,7 @@ import { Loader2, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "@/components/ui/Toast";
+import Link from "next/link";
 
 export default function TrackOrderPage() {
   const router = useRouter();
@@ -76,9 +77,9 @@ export default function TrackOrderPage() {
 
         <p className="text-xs text-white/30 mt-6">
           Lost your order ID? Visit{" "}
-          <a href="/orders" className="text-primary font-bold hover:text-accent">
+          <Link href="/orders" className="text-primary font-bold hover:text-accent">
             My Orders
-          </a>{" "}
+          </Link>{" "}
           to see all your past orders.
         </p>
       </div>

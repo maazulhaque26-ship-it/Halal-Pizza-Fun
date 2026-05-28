@@ -19,6 +19,16 @@ jobs:
           node-version: '20'
           cache: npm
 
+      # ── 2.1 Verify Code Quality (QA Checks) ────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Type Check
+        run: npx tsc --noEmit
+
       # ── 3. Vercel CLI ─────────────────────────────────────────────────────
       - name: Install Vercel CLI
         run: npm install --global vercel@latest

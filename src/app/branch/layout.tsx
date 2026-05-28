@@ -10,6 +10,7 @@ import { ROLES, ROUTES } from "@/config/constants";
 import { cn } from "@/lib/utils";
 import { OrderPopup } from "@/components/admin/OrderPopup";
 import { PwaManager } from "@/components/pwa/PwaManager";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: ROUTES.BRANCH.DASHBOARD, icon: LayoutDashboard },
@@ -120,10 +121,7 @@ export default function BranchLayout({ children }: { children: React.ReactNode }
             </button>
             <h1 className="font-black text-white/90 text-lg hidden sm:block">Branch Dashboard</h1>
           </div>
-          <button className="relative p-2 bg-background/5 rounded-xl hover:bg-background/8 transition-colors">
-            <Bell className="w-5 h-5 text-white/60" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-          </button>
+          <NotificationBell />
         </header>
         <motion.main key={pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           className="flex-1 p-6 md:p-8">

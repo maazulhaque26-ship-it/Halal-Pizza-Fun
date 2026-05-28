@@ -33,24 +33,6 @@ export function AreaSelector() {
 
   const { selectedArea, setSelectedArea } = useAreaStore();
 
-  useEffect(() => {
-    fetchAreas();
-  }, []);
-
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredAreas(areas);
-    } else {
-      const query = searchQuery.toLowerCase();
-      const filtered = areas.filter(
-        (area) =>
-          area.name.toLowerCase().includes(query) ||
-          area.landmarks?.some((lm) => lm.toLowerCase().includes(query))
-      );
-      setFilteredAreas(filtered);
-    }
-  }, [searchQuery, areas]);
-
   async function fetchAreas() {
     try {
       setLoading(true);
@@ -69,6 +51,24 @@ export function AreaSelector() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    fetchAreas();
+  }, []);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredAreas(areas);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = areas.filter(
+        (area) =>
+          area.name.toLowerCase().includes(query) ||
+          area.landmarks?.some((lm) => lm.toLowerCase().includes(query))
+      );
+      setFilteredAreas(filtered);
+    }
+  }, [searchQuery, areas]);
 
   function handleSelectArea(area: Area) {
     setSelectedArea(area);

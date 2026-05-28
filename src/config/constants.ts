@@ -81,6 +81,7 @@ export const API = {
   SETTINGS: "/api/settings",
   UPLOAD: "/api/upload",
   COUPONS: "/api/coupons",
+  NOTIFICATIONS: "/api/notifications",
 } as const;
 
 // ============================================================

@@ -15,6 +15,7 @@ import { ROLES, ROUTES } from "@/config/constants";
 import { cn } from "@/lib/utils";
 import { OrderPopup } from "@/components/admin/OrderPopup";
 import { PwaManager } from "@/components/pwa/PwaManager";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const NAV_ITEMS = [
   { label: "Dashboard",    href: ROUTES.ADMIN.DASHBOARD,  icon: LayoutDashboard, badge: null },
@@ -198,10 +199,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
-            <button className="relative p-2 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
-              <Bell className="w-5 h-5 text-white/50" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
+            <NotificationBell />
             <Link
               href={ROUTES.HOME}
               className="text-sm text-primary font-bold hover:text-accent transition-colors border border-primary/20 px-3 py-1.5 rounded-lg"
