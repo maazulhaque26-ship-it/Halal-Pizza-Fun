@@ -6,6 +6,7 @@ import { Order } from "@/lib/db/models/Order";
 import { connectDB } from "@/lib/db/mongoose";
 import mongoose from "mongoose";
 import { ROLES } from "@/config/constants";
+import { env } from "@/config/env";
 
 /**
  * POST /api/orders/[id]/transfer
@@ -79,6 +80,25 @@ export async function POST(
 
     if (!result.success) {
       return NextResponse.json({ success: false, message: result.error }, { status: 400 });
+    }
+
+    // ─── Real-time Socket Notification to both branches + customer ──────────
+    if (env.NEXT_PUBLIC_SOCKET_URL) {
+      fetch(`${env.NEXT_PUBLIC_SOCKET_URL}/api/notify/order-transfer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": env.SOCKET_API_KEY || "dev_socket_api_key_123",
+        },
+        body: JSON.stringify({
+          orderId: order.orderId || id,
+          fromBranchId: order.branchId?.toString(),
+          toBranchId,
+          customerId: order.customerId?.toString(),
+          reason,
+          items: order.items,
+        }),
+      }).catch((err) => console.error("Failed to broadcast transfer notification:", err));
     }
 
     return NextResponse.json({

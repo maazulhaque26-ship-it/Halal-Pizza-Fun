@@ -85,7 +85,17 @@ export default function BranchOrdersPage() {
   const [branches, setBranches] = useState<{ _id: string; name: string }[]>([]);
   const [transferBranchId, setTransferBranchId] = useState("");
   const [transferReason, setTransferReason] = useState("");
+  const [transferNotes, setTransferNotes] = useState("");
   const [transferring, setTransferring] = useState(false);
+
+  const TRANSFER_REASONS = [
+    { value: "WRONG_AREA", label: "Customer selected wrong area" },
+    { value: "BRANCH_OVERLOADED", label: "Our branch is too busy" },
+    { value: "ITEM_UNAVAILABLE", label: "Item not available here" },
+    { value: "DELIVERY_FAR", label: "Delivery address too far" },
+    { value: "BRANCH_CLOSED", label: "Emergency branch closure" },
+    { value: "MANAGER_REQUEST", label: "Manager request" },
+  ];
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -113,16 +123,24 @@ export default function BranchOrdersPage() {
   useEffect(() => {
     if (!session?.user) return;
     const socket = getSocket();
-    const branchId = (session.user as any).branchId;
 
     const refresh = () => fetchOrders();
     const onNew = () => { toast.info("🔔 New order received!"); fetchOrders(); };
+    const onTransferIn = () => { toast.info("🔄 A transferred order just arrived!"); fetchOrders(); };
+    const onTransferOut = () => { toast.info("🔄 An order was transferred out."); fetchOrders(); };
 
     connectSocket(); // JWT-authenticated connect; server auto-joins branch room on connect
 
     socket.on("NEW_ORDER", onNew);
     socket.on("ORDER_STATUS_CHANGED", refresh);
-    return () => { socket.off("NEW_ORDER", onNew); socket.off("ORDER_STATUS_CHANGED", refresh); };
+    socket.on("ORDER_TRANSFERRED_IN", onTransferIn);
+    socket.on("ORDER_TRANSFERRED_OUT", onTransferOut);
+    return () => {
+      socket.off("NEW_ORDER", onNew);
+      socket.off("ORDER_STATUS_CHANGED", refresh);
+      socket.off("ORDER_TRANSFERRED_IN", onTransferIn);
+      socket.off("ORDER_TRANSFERRED_OUT", onTransferOut);
+    };
   }, [session, fetchOrders]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
@@ -141,21 +159,21 @@ export default function BranchOrdersPage() {
   };
 
   const handleTransfer = async () => {
-    if (!selected || !transferBranchId || !transferReason.trim()) {
-      toast.error("Please select a branch and enter a reason."); return;
+    if (!selected || !transferBranchId || !transferReason) {
+      toast.error("Please select a branch and a transfer reason."); return;
     }
     setTransferring(true);
     try {
       const res = await fetch(`/api/orders/${selected._id}/transfer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toBranchId: transferBranchId, reason: transferReason }),
+        body: JSON.stringify({ toBranchId: transferBranchId, reason: transferReason, notes: transferNotes }),
       });
       const d = await res.json();
       if (d.success) {
         toast.success("Order transferred successfully.");
         setShowTransfer(false); setSelected(null);
-        setTransferBranchId(""); setTransferReason("");
+        setTransferBranchId(""); setTransferReason(""); setTransferNotes("");
         fetchOrders();
       } else toast.error(d.message || "Transfer failed.");
     } catch { toast.error("Transfer failed."); }
@@ -412,16 +430,30 @@ export default function BranchOrdersPage() {
 
                 <div>
                   <label className="block text-xs font-black text-white/40 uppercase tracking-wide mb-2">Reason for Transfer</label>
-                  <textarea
+                  <select
                     value={transferReason}
                     onChange={e => setTransferReason(e.target.value)}
-                    rows={3}
-                    placeholder="e.g., Branch is at full capacity, items unavailable..."
-                    className="w-full px-4 py-3 bg-background border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-purple-400 resize-none"
+                    className="w-full px-4 py-3 bg-background border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-purple-400 text-white"
+                  >
+                    <option value="">Select reason...</option>
+                    {TRANSFER_REASONS.map(r => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-white/40 uppercase tracking-wide mb-2">Additional Notes (Optional)</label>
+                  <textarea
+                    value={transferNotes}
+                    onChange={e => setTransferNotes(e.target.value)}
+                    rows={2}
+                    placeholder="Any extra context for the receiving branch..."
+                    className="w-full px-4 py-3 bg-background border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-purple-400 resize-none text-white placeholder:text-white/25"
                   />
                 </div>
 
-                <button onClick={handleTransfer} disabled={transferring || !transferBranchId || !transferReason.trim()}
+                <button onClick={handleTransfer} disabled={transferring || !transferBranchId || !transferReason}
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                   {transferring ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRightLeft className="w-4 h-4" />}
                   {transferring ? "Transferring..." : "Confirm Transfer"}
