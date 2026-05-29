@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Search, ArrowRight, Star, Flame, Award, MapPin } from "lucide-react";
+import { Search, ArrowRight, Star, Flame, Award } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -76,15 +76,7 @@ export default function Hero({
         className="relative z-10 mx-auto grid min-h-svh w-full max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-24 pt-28 sm:px-6 md:grid-cols-[1.02fr_0.78fr] md:pb-20 md:pt-32 lg:gap-16"
       >
         <div className="max-w-3xl text-left">
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="mb-7 inline-flex items-center gap-3 rounded-full border border-[#f5c35b]/25 bg-[#fff7ec]/10 px-4 py-2 text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#f5c35b] shadow-[0_18px_48px_rgba(0,0,0,0.22)] backdrop-blur-md"
-          >
-            <span className="h-2 w-2 rounded-full bg-[#f05a28]" />
-            Est. 2016 | Fired fresh daily
-          </motion.div>
+
 
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -92,14 +84,7 @@ export default function Hero({
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             className="font-playfair text-5xl font-black leading-[0.96] tracking-normal text-[#fff8ee] sm:text-6xl md:text-7xl lg:text-8xl"
           >
-            {title === DEFAULT_TITLE ? (
-              <>
-                Halal pizza,
-                <span className="block text-[#ffb44a]">made with a pulse.</span>
-              </>
-            ) : (
-              title
-            )}
+            {title}
           </motion.h1>
 
           <motion.p
@@ -147,9 +132,7 @@ export default function Hero({
             transition={{ duration: 0.7, delay: 0.44 }}
             className="mt-8 flex flex-wrap items-center gap-2.5"
           >
-            <span className="mr-1 text-[11px] font-black uppercase tracking-[0.18em] text-[#f5c35b]/70">
-              Popular tonight
-            </span>
+
             {trendingTags.map((item) => (
               <Link
                 key={item}
@@ -172,14 +155,8 @@ export default function Hero({
             <div className="relative h-[520px] overflow-hidden rounded-[26px]">
               <div className="absolute inset-0 bg-cover bg-center" style={bgStyle} />
               <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_34%,rgba(0,0,0,0.84)_100%)]" />
-              <div className="absolute left-5 top-5 rounded-full bg-[#fff8ee] px-4 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-[#442414]">
-                Kitchen note
-              </div>
               <div className="absolute bottom-0 left-0 right-0 p-6">
-                <p className="font-playfair text-3xl font-black leading-tight text-white">
-                  Hot boxes leave the oven in small, careful batches.
-                </p>
-                <div className="mt-5 grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {stats.map(({ label, value }, i) => {
                     const Icon = STAT_ICONS[i % STAT_ICONS.length];
                     return (
@@ -194,15 +171,7 @@ export default function Hero({
               </div>
             </div>
           </div>
-          <div className="absolute -bottom-6 -left-2 rounded-2xl border border-[#f5c35b]/24 bg-[#21150f]/92 px-5 py-4 text-[#fff8ee] shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md">
-            <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-4 w-4 text-[#f05a28]" />
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#f5c35b]">Nearest kitchen</p>
-                <p className="mt-1 text-sm font-semibold text-white/80">Fresh prep starts after branch selection.</p>
-              </div>
-            </div>
-          </div>
+
         </motion.div>
       </motion.div>
 
