@@ -71,17 +71,17 @@ export default function MyOrdersPage() {
 
   if (status === "loading" || (loading && status === "authenticated")) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-[#fff4e4] text-[#2b160c] flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full" />
+          <div className="animate-spin w-12 h-12 border-4 border-[#ef5a24] border-t-transparent rounded-full" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-[#fff4e4] text-[#2b160c] flex flex-col">
       <Navbar />
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 pt-28 pb-24">
@@ -90,10 +90,10 @@ export default function MyOrdersPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <h1 className="text-4xl font-black text-white mb-2 flex items-center gap-3">
-            <Receipt className="w-8 h-8 text-primary" /> My Orders
+          <h1 className="font-playfair text-4xl font-black text-[#2b160c] mb-2 flex items-center gap-3">
+            <Receipt className="w-8 h-8 text-[#ef5a24]" /> My Orders
           </h1>
-          <p className="text-white/50 font-medium">
+          <p className="text-[#8f6b52] font-medium">
             View your order history and track active orders.
           </p>
         </motion.div>
@@ -103,18 +103,18 @@ export default function MyOrdersPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="rounded-3xl p-12 text-center"
-            style={{ background: "linear-gradient(145deg, rgba(13,24,41,0.9), rgba(10,18,35,0.95))", border: "1px solid rgba(255,255,255,0.06)" }}
+            className="rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]"
           >
-            <div className="w-24 h-24 bg-background/5 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Package className="w-10 h-10 text-white/20" />
+            <div className="w-24 h-24 bg-[#fff4e4] text-[#2b160c]/5 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Package className="w-10 h-10 text-[#8f6b52]/50" />
             </div>
-            <h2 className="text-2xl font-black text-white mb-3">No orders yet</h2>
-            <p className="text-white/50 mb-8 max-w-sm mx-auto">
+            <h2 className="text-2xl font-black text-[#2b160c] mb-3">No orders yet</h2>
+            <p className="text-[#8f6b52] mb-8 max-w-sm mx-auto">
               Looks like you haven't placed any orders yet. Discover our delicious menu and place your first order!
             </p>
             <Link
               href="/menu"
-              className="inline-flex items-center gap-2 bg-primary text-black px-8 py-4 rounded-2xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+              className="inline-flex items-center gap-2 bg-[#ef5a24] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#ef5a24]/90 transition-all shadow-lg shadow-[#ef5a24]/20"
             >
               Explore Menu <ArrowRight className="w-4 h-4" />
             </Link>
@@ -128,23 +128,23 @@ export default function MyOrdersPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
                 className="rounded-3xl p-6 md:p-8 transition-all duration-300 group relative overflow-hidden"
-                style={{ background: "linear-gradient(145deg, rgba(13,24,41,0.9), rgba(10,18,35,0.95))", border: "1px solid rgba(255,255,255,0.06)" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(212,175,55,0.25)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)"; }}
+                className="rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]"
+                
+                
               >
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-background/5 group-hover:bg-primary transition-colors" />
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-[#fff4e4] text-[#2b160c]/5 group-hover:bg-[#ef5a24] transition-colors" />
                 
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   {/* Order Header Info */}
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-3 mb-2">
-                      <span className="font-black text-white text-lg">#{order.orderId}</span>
+                      <span className="font-black text-[#2b160c] text-lg">#{order.orderId}</span>
                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border ${STATUS_COLORS[order.status] || STATUS_COLORS.PENDING}`}>
                         {order.status}
                       </span>
                     </div>
                     
-                    <div className="flex items-center gap-4 text-sm text-white/40 font-medium">
+                    <div className="flex items-center gap-4 text-sm text-[#8f6b52] font-medium">
                       <span className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
                         {new Date(order.createdAt).toLocaleDateString(undefined, { 
@@ -160,15 +160,15 @@ export default function MyOrdersPage() {
                   </div>
 
                   {/* Order Total & Action */}
-                  <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto border-t md:border-0 border-white/8 pt-4 md:pt-0">
+                  <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto border-t md:border-0 border-[#ead8c1] pt-4 md:pt-0">
                     <div className="text-left md:text-right">
-                      <p className="text-xs text-white/40 font-semibold uppercase tracking-wider mb-1">Total</p>
-                      <p className="text-xl font-black text-primary">₹{order.total.toFixed(2)}</p>
+                      <p className="text-xs text-[#8f6b52] font-semibold uppercase tracking-wider mb-1">Total</p>
+                      <p className="text-xl font-black text-[#ef5a24]">₹{order.total.toFixed(2)}</p>
                     </div>
                     
                     <Link
                       href={`/orders/${order.orderId}`}
-                      className="flex items-center justify-center w-12 h-12 rounded-2xl bg-background/5 text-white/50 hover:bg-primary hover:text-black transition-all"
+                      className="flex items-center justify-center w-12 h-12 rounded-2xl bg-[#fff4e4] text-[#2b160c]/5 text-[#8f6b52] hover:bg-[#ef5a24] hover:text-white transition-all"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </Link>
@@ -176,8 +176,8 @@ export default function MyOrdersPage() {
                 </div>
 
                 {/* Items Preview */}
-                <div className="mt-6 pt-6 border-t border-white/5">
-                  <p className="text-sm font-medium text-white/50 truncate">
+                <div className="mt-6 pt-6 border-t border-[#ead8c1]">
+                  <p className="text-sm font-medium text-[#8f6b52] truncate">
                     {order.items.map(item => `${item.quantity}x ${item.productId?.name || 'Item'}`).join(', ')}
                   </p>
                 </div>
