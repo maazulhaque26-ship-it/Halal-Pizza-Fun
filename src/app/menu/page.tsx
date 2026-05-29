@@ -41,7 +41,7 @@ const COLOR_THEMES = [
     text: "text-[#3a200d]",
     desc: "text-[#6b5240]",
     badgeBg: "bg-[#ff6813]/10 text-[#ff6813]",
-    cartBtnBg: "bg-white text-[#ff6813] border-[#ffdcc2] hover:bg-[#ff6813] hover:text-white",
+    cartBtnBg: "bg-white text-[#ff6813] border-[#ffdcc2] hover:bg-[#ff6813] hover:text-[#2b160c]",
   },
   {
     bg: "bg-[#f7f0ff]", // soft lavender tint
@@ -52,7 +52,7 @@ const COLOR_THEMES = [
     text: "text-[#230d3d]",
     desc: "text-[#55406b]",
     badgeBg: "bg-[#6c1cd4]/10 text-[#6c1cd4]",
-    cartBtnBg: "bg-white text-[#6c1cd4] border-[#e0cfff] hover:bg-[#6c1cd4] hover:text-white",
+    cartBtnBg: "bg-white text-[#6c1cd4] border-[#e0cfff] hover:bg-[#6c1cd4] hover:text-[#2b160c]",
   },
   {
     bg: "bg-[#f0fffa]", // soft mint/teal tint
@@ -63,7 +63,7 @@ const COLOR_THEMES = [
     text: "text-[#0d362a]",
     desc: "text-[#40685e]",
     badgeBg: "bg-[#119d77]/10 text-[#119d77]",
-    cartBtnBg: "bg-white text-[#119d77] border-[#cfffef] hover:bg-[#119d77] hover:text-white",
+    cartBtnBg: "bg-white text-[#119d77] border-[#cfffef] hover:bg-[#119d77] hover:text-[#2b160c]",
   },
   {
     bg: "bg-[#fff0f4]", // soft pink tint
@@ -74,7 +74,7 @@ const COLOR_THEMES = [
     text: "text-[#3d0d1b]",
     desc: "text-[#6b404d]",
     badgeBg: "bg-[#d3225a]/10 text-[#d3225a]",
-    cartBtnBg: "bg-white text-[#d3225a] border-[#ffcfdd] hover:bg-[#d3225a] hover:text-white",
+    cartBtnBg: "bg-white text-[#d3225a] border-[#ffcfdd] hover:bg-[#d3225a] hover:text-[#2b160c]",
   }
 ];
 
@@ -177,13 +177,13 @@ function MenuProductCard({ product, index }: { product: Product; index: number }
               const foodType = product.foodType || (product.isVegetarian ? "veg" : "nonveg");
               if (foodType === "veg") {
                 return (
-                  <span className="flex items-center gap-1 bg-[#119d77] text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                  <span className="flex items-center gap-1 bg-[#119d77] text-[#2b160c] text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
                     <Leaf className="w-2.5 h-2.5" /> Veg
                   </span>
                 );
               } else if (foodType === "nonveg") {
                 return (
-                  <span className="flex items-center gap-1 bg-[#d3225a] text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                  <span className="flex items-center gap-1 bg-[#d3225a] text-[#2b160c] text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
                     <span className="w-1.5 h-1.5 rounded-full bg-white inline-block" /> Non-Veg
                   </span>
                 );
@@ -259,7 +259,7 @@ function MenuProductCard({ product, index }: { product: Product; index: number }
                         className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-150 border ${
                           isSelected
                             ? `bg-black/5 ${theme.text} border-black/20`
-                            : `bg-white/50 ${theme.desc} border-black/5 hover:border-black/20`
+                            : `bg-white0 ${theme.desc} border-black/5 hover:border-black/20`
                         }`}
                       >
                         {v.variantName}
@@ -275,7 +275,7 @@ function MenuProductCard({ product, index }: { product: Product; index: number }
           <button
             onClick={handleAdd}
             disabled={showVariants && hasLoadedVariants && !selectedVariant}
-            className={`w-full py-3 rounded-xl font-sans font-black text-xs uppercase tracking-wider text-white border-2 ${theme.btnBorder} ${theme.btn} ${theme.shadow} flex items-center justify-center gap-2 hover:translate-y-[2px] hover:shadow-[0_2px_0_rgba(0,0,0,0.15)] active:translate-y-[4px] active:shadow-none transition-all duration-150`}
+            className={`w-full py-3 rounded-xl font-sans font-black text-xs uppercase tracking-wider text-[#2b160c] border-2 ${theme.btnBorder} ${theme.btn} ${theme.shadow} flex items-center justify-center gap-2 hover:translate-y-[2px] hover:shadow-[0_2px_0_rgba(0,0,0,0.15)] active:translate-y-[4px] active:shadow-none transition-all duration-150`}
           >
             <span>{added ? "Added!" : "Order Now"}</span>
             <span className="text-sm">🍳</span>
@@ -355,7 +355,7 @@ function MenuContent() {
   }, [products, selectedCat, vegOnly, query]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#fff4e4] text-[#2b160c]">
       <Navbar
         siteName={settings?.siteName}
         logoUrl={settings?.logoUrl}
@@ -365,12 +365,12 @@ function MenuContent() {
 
       {/* ── Premium Header ── */}
       <div className="relative pt-28 pb-14 md:pt-32 md:pb-20 px-4 sm:px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-b from-[#070f20] to-background" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.08),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[#fffaf2]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(239,90,36,0.05),transparent_60%)]" />
         <motion.div
           animate={{ opacity: [0.05, 0.12, 0.05] }}
           transition={{ duration: 6, repeat: Infinity }}
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[100px] rounded-full"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#ef5a24]/5 blur-[100px] rounded-full"
         />
 
         <div className="relative max-w-7xl mx-auto">
@@ -379,23 +379,23 @@ function MenuContent() {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-2 mb-4"
           >
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-primary font-bold text-sm uppercase tracking-widest">Our Menu</span>
+            <Sparkles className="w-4 h-4 text-[#ef5a24]" />
+            <span className="text-[#ef5a24] font-bold text-sm uppercase tracking-widest">Our Menu</span>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-3xl md:text-6xl font-black text-white mb-3 tracking-tight"
+            className="font-playfair text-4xl md:text-7xl font-black text-[#2b160c] mb-3 tracking-tight"
           >
             Explore{" "}
-            <span className="text-gradient italic">Everything</span>
+            <span className="text-[#ef5a24] italic">Everything</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-white/50 text-lg"
+            className="text-[#8f6b52] text-lg"
           >
             {filtered.length} dishes available · Crafted with passion
           </motion.p>
@@ -407,18 +407,18 @@ function MenuContent() {
             transition={{ delay: 0.3 }}
             className="relative mt-6 max-w-xl"
           >
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 w-5 h-5" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8f6b52] w-5 h-5" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search for dishes, cuisines..."
-              className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 focus:border-primary/40 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-white placeholder:text-white/30 font-medium transition-all"
+              className="w-full pl-12 pr-4 py-4 bg-white border border-[#ead8c1] focus:border-[#ef5a24]/40 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#ef5a24]/20 text-[#2b160c] placeholder:text-[#8f6b52]/80 font-medium transition-all"
             />
             {query && (
               <button
                 onClick={() => setQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8f6b52]/80 hover:text-[#2b160c] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -435,8 +435,8 @@ function MenuContent() {
             onClick={() => setSelectedCat("all")}
             className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shrink-0 ${
               selectedCat === "all"
-                ? "bg-primary text-black shadow-lg shadow-primary/25"
-                : "bg-white/5 text-white/70 border border-white/10 hover:border-primary/30"
+                ? "bg-[#ef5a24] text-white shadow-[0_6px_0_#9b3214] shadow-[0_4px_0_#9b3214] translate-y-[-2px]"
+                : "bg-white text-[#6d5342] border border-[#ead8c1] hover:border-[#ef5a24]/30"
             }`}
           >
             All Items
@@ -447,8 +447,8 @@ function MenuContent() {
               onClick={() => setSelectedCat(cat._id)}
               className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shrink-0 ${
                 selectedCat === cat._id
-                  ? "bg-primary text-black shadow-lg shadow-primary/25"
-                  : "bg-white/5 text-white/70 border border-white/10 hover:border-primary/30"
+                  ? "bg-[#ef5a24] text-white shadow-[0_6px_0_#9b3214] shadow-[0_4px_0_#9b3214] translate-y-[-2px]"
+                  : "bg-white text-[#6d5342] border border-[#ead8c1] hover:border-[#ef5a24]/30"
               }`}
             >
               {cat.name}
@@ -458,8 +458,8 @@ function MenuContent() {
             onClick={() => setShowFilters((v) => !v)}
             className={`ml-auto shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold border transition-all ${
               showFilters || vegOnly
-                ? "bg-primary text-black border-primary"
-                : "bg-white/5 text-white/60 border-white/10"
+                ? "bg-[#ef5a24] text-white shadow-[0_6px_0_#9b3214] border-[#ef5a24]"
+                : "bg-white text-[#8f6b52] border-[#ead8c1]"
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -476,11 +476,11 @@ function MenuContent() {
               exit={{ opacity: 0, height: 0 }}
               className="mb-6 overflow-hidden"
             >
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex gap-4 flex-wrap">
+              <div className="bg-white border border-[#ead8c1] rounded-2xl p-5 flex gap-4 flex-wrap">
                 <button
                   onClick={() => setVegOnly((v) => !v)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
-                    vegOnly ? "bg-emerald-500/20 text-emerald-400 border-emerald-500" : "border-white/10 text-white/60"
+                    vegOnly ? "bg-emerald-500/20 text-emerald-400 border-emerald-500" : "border-[#ead8c1] text-[#8f6b52]"
                   }`}
                 >
                   <Leaf className="w-4 h-4" />
@@ -495,17 +495,17 @@ function MenuContent() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-80 bg-white/5 rounded-2xl animate-pulse" />
+              <div key={i} className="h-80 bg-white rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-24">
             <div className="text-6xl mb-4">🍽️</div>
-            <h3 className="text-2xl font-bold text-white/70 mb-2">No dishes found</h3>
-            <p className="text-white/40">Try adjusting your search or filters</p>
+            <h3 className="text-2xl font-bold text-[#6d5342] mb-2">No dishes found</h3>
+            <p className="text-[#8f6b52]">Try adjusting your search or filters</p>
             <button
               onClick={() => { setQuery(""); setSelectedCat("all"); setVegOnly(false); }}
-              className="mt-6 px-6 py-3 bg-primary text-black rounded-xl font-bold hover:bg-accent transition-colors"
+              className="mt-6 px-6 py-3 bg-[#ef5a24] text-white shadow-[0_6px_0_#9b3214] rounded-xl font-bold hover:bg-accent transition-colors"
             >
               Clear Filters
             </button>
@@ -536,8 +536,8 @@ export default function MenuPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        <div className="min-h-screen bg-[#fff4e4] text-[#2b160c] flex items-center justify-center">
+          <div className="animate-spin w-8 h-8 border-4 border-[#ef5a24] border-t-transparent rounded-full" />
         </div>
       }
     >

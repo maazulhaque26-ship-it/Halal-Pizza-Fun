@@ -180,10 +180,10 @@ export default function Navbar({ siteName = "Halal Pizza Fun", logoUrl, mobileLo
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 py-4",
           isScrolled 
             ? isLightPage 
-              ? "bg-background/95 backdrop-blur-md shadow-sm border-b border-white/8 py-3" 
+              ? isLightPage ? "bg-[#fff4e4]/95 backdrop-blur-md shadow-sm border-b border-[#ead8c1] py-3" : "bg-background/95 backdrop-blur-md shadow-sm border-b border-white/8 py-3" 
               : "glass-card shadow-xl shadow-black/50 py-3 border-b border-white/5" 
             : isLightPage 
-              ? "bg-background/90 backdrop-blur-sm border-b border-white/5" 
+              ? isLightPage ? "bg-[#fff4e4]/90 backdrop-blur-sm border-b border-[#ead8c1]" : "bg-background/90 backdrop-blur-sm border-b border-white/5" 
               : "bg-transparent"
         )}
       >
@@ -227,42 +227,42 @@ export default function Navbar({ siteName = "Halal Pizza Fun", logoUrl, mobileLo
           <div className="hidden md:flex items-center gap-6">
             <Link
               href={ROUTES.MENU}
-              className={cn("text-sm font-semibold transition-colors hover:text-primary", "text-white/90")}
+              className={cn("text-sm font-semibold transition-colors hover:text-primary", isLightPage ? "text-[#2b160c]/90" : "text-white/90")}
             >
               Explore Menu
             </Link>
             <Link
               href="/about-us"
-              className={cn("text-sm font-semibold transition-colors hover:text-primary", "text-white/90")}
+              className={cn("text-sm font-semibold transition-colors hover:text-primary", isLightPage ? "text-[#2b160c]/90" : "text-white/90")}
             >
               About Us
             </Link>
             <Link
               href="/franchise"
-              className={cn("text-sm font-semibold transition-colors hover:text-primary", "text-white/90")}
+              className={cn("text-sm font-semibold transition-colors hover:text-primary", isLightPage ? "text-[#2b160c]/90" : "text-white/90")}
             >
               Franchise Page
             </Link>
             <Link
               href="/offers"
-              className={cn("text-sm font-semibold transition-colors hover:text-primary", "text-white/90")}
+              className={cn("text-sm font-semibold transition-colors hover:text-primary", isLightPage ? "text-[#2b160c]/90" : "text-white/90")}
             >
               Offers
             </Link>
             {session && (
               <Link
                 href="/orders"
-                className={cn("text-sm font-semibold transition-colors hover:text-primary", "text-white/90")}
+                className={cn("text-sm font-semibold transition-colors hover:text-primary", isLightPage ? "text-[#2b160c]/90" : "text-white/90")}
               >
                 My Orders
               </Link>
             )}
 
-            <div className="flex items-center gap-3 border-l border-white/20 pl-6">
+            <div className={cn("flex items-center gap-3 border-l pl-6", isLightPage ? "border-[#ead8c1]" : "border-white/20")}>
               {/* Cart */}
               <Link
                 href={ROUTES.CHECKOUT}
-                className={cn("relative p-2 rounded-full transition-colors", "text-white hover:bg-white/10")}
+                className={cn("relative p-2 rounded-full transition-colors", isLightPage ? "text-[#2b160c] hover:bg-black/5" : "text-white hover:bg-white/10")}
               >
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
@@ -280,7 +280,7 @@ export default function Navbar({ siteName = "Halal Pizza Fun", logoUrl, mobileLo
                       e.stopPropagation();
                       setShowUserMenu((v) => !v);
                     }}
-                    className={cn("flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition-all backdrop-blur-md", "bg-white/10 text-white hover:bg-white/20 border border-white/5")}
+                    className={cn("flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition-all backdrop-blur-md", isLightPage ? "bg-white text-[#2b160c] hover:bg-[#fffaf2] border border-[#ead8c1]" : "bg-white/10 text-white hover:bg-white/20 border border-white/5")}
                   >
                     <User className="w-4 h-4" />
                     <span className="max-w-[80px] truncate">{session.user.name}</span>
@@ -339,7 +339,7 @@ export default function Navbar({ siteName = "Halal Pizza Fun", logoUrl, mobileLo
           <div className="md:hidden flex items-center gap-3">
             <Link
               href={ROUTES.CHECKOUT}
-              className={cn("relative p-2", "text-white")}
+              className={cn("relative p-2", isLightPage ? "text-[#2b160c]" : "text-white")}
             >
               <ShoppingCart className="w-6 h-6" />
               {cartCount > 0 && (
@@ -350,7 +350,7 @@ export default function Navbar({ siteName = "Halal Pizza Fun", logoUrl, mobileLo
             </Link>
             <button
               onClick={() => setIsMobileMenuOpen((v) => !v)}
-              className={cn("p-2 rounded-lg", "text-white")}
+              className={cn("p-2 rounded-lg", isLightPage ? "text-[#2b160c]" : "text-white")}
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
