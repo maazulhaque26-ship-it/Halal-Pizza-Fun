@@ -6,30 +6,50 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "@/components/ui/Toast";
 import {
-  ShieldCheck, Users2, Megaphone, GraduationCap, UtensilsCrossed,
-  CheckCircle2, ArrowRight, Loader2, TrendingUp, MapPin,
-  Phone, Mail, Globe, ChevronRight, Rocket, Clock, Award
+  ShieldCheck,
+  Users2,
+  Megaphone,
+  GraduationCap,
+  UtensilsCrossed,
+  CheckCircle2,
+  ArrowRight,
+  Loader2,
+  TrendingUp,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  ChevronRight,
+  Rocket,
+  Clock,
+  Award,
 } from "lucide-react";
 import { API } from "@/config/constants";
 
 const WHY_ICONS = [ShieldCheck, TrendingUp, Megaphone, GraduationCap, UtensilsCrossed, CheckCircle2];
-const USP_ICONS  = [ShieldCheck, Users2, UtensilsCrossed];
+const USP_ICONS = [ShieldCheck, Users2, UtensilsCrossed];
 const STEP_ICONS = [Rocket, Clock, Award];
 
 export default function FranchisePage() {
   const [settings, setSettings] = useState<any>(null);
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    firstName: "", lastName: "", email: "",
-    phone: "", city: "", capital: "50-100k",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    city: "",
+    capital: "50-100k",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { csrfToken, refetch: refetchCsrf } = useCsrf();
 
   useEffect(() => {
     fetch(API.SETTINGS, { cache: "no-store" })
-      .then(r => r.json())
-      .then(d => { if (d.success) setSettings(d.data); })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) setSettings(d.data);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -42,7 +62,7 @@ export default function FranchisePage() {
       if (cur == null || typeof cur !== "object") return fallback;
       cur = cur[k];
     }
-    return (cur !== undefined && cur !== null && cur !== "") ? cur : fallback;
+    return cur !== undefined && cur !== null && cur !== "" ? cur : fallback;
   };
   const f = (key: string, fallback = "") => g(`franchisePage.${key}`, fallback);
 
@@ -54,7 +74,8 @@ export default function FranchisePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.firstName || !formData.email || !formData.phone || !formData.city) {
-      toast.error("Please fill in all required fields."); return;
+      toast.error("Please fill in all required fields.");
+      return;
     }
     setIsSubmitting(true);
     try {
@@ -69,12 +90,19 @@ export default function FranchisePage() {
       const data = await res.json();
       if (data.success) {
         toast.success("Application submitted! Our franchise director will contact you within 48 hours.");
-        setFormData({ firstName: "", lastName: "", email: "", phone: "", city: "", capital: "50-100k" });
-        refetchCsrf(); // rotate the token after each successful submission
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          city: "",
+          capital: "50-100k",
+        });
+        refetchCsrf();
       } else {
         toast.error(data.message || "Something went wrong.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to submit application. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -83,308 +111,337 @@ export default function FranchisePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      <main className="min-h-screen bg-[#fff4e4] flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-[#ef5a24]" />
       </main>
     );
   }
 
   const whyItems = getArr<{ title: string; desc: string }>("whyItems", [
-    { title: f("why1Title","Trusted Brand"),        desc: f("why1Desc") },
-    { title: f("why2Title","Proven Business Model"),desc: f("why2Desc") },
-    { title: f("why3Title","Marketing Support"),    desc: f("why3Desc") },
-    { title: f("why4Title","Training Assistance"),  desc: f("why4Desc") },
-    { title: f("why5Title","Innovative Menu"),      desc: f("why5Desc") },
-    { title: f("why6Title","100% Halal Certified"), desc: f("why6Desc") },
+    { title: f("why1Title", "Trusted Brand"), desc: f("why1Desc") },
+    { title: f("why2Title", "Proven Business Model"), desc: f("why2Desc") },
+    { title: f("why3Title", "Marketing Support"), desc: f("why3Desc") },
+    { title: f("why4Title", "Training Assistance"), desc: f("why4Desc") },
+    { title: f("why5Title", "Innovative Menu"), desc: f("why5Desc") },
+    { title: f("why6Title", "100% Halal Certified"), desc: f("why6Desc") },
   ]);
   const mktStats = getArr<{ value: string; label: string }>("mktItems", [
-    { value: f("mkt1Value","$2.71T"),  label: f("mkt1Label","Global Halal Market") },
-    { value: f("mkt2Value","3.45M+"), label: f("mkt2Label","Muslim Population Growth") },
-    { value: f("mkt3Value","15+"),     label: f("mkt3Label","Active Branches") },
+    { value: f("mkt1Value", "$2.71T"), label: f("mkt1Label", "Global Halal Market") },
+    { value: f("mkt2Value", "3.45M+"), label: f("mkt2Label", "Muslim Population Growth") },
+    { value: f("mkt3Value", "15+"), label: f("mkt3Label", "Active Branches") },
   ]);
   const uspItems = getArr<{ title: string; desc: string }>("uspItems", [
-    { title: f("usp1Title","100% Halal"),       desc: f("usp1Desc") },
-    { title: f("usp2Title","Family-Friendly"),  desc: f("usp2Desc") },
-    { title: f("usp3Title","Innovative Menu"),  desc: f("usp3Desc") },
+    { title: f("usp1Title", "100% Halal"), desc: f("usp1Desc") },
+    { title: f("usp2Title", "Family-Friendly"), desc: f("usp2Desc") },
+    { title: f("usp3Title", "Innovative Menu"), desc: f("usp3Desc") },
   ]);
   const invRows = getArr<{ label: string; value: string }>("invItems", [
-    { label: f("invFeeLabel","Franchise Fee"),   value: f("invFeeValue","₹5,00,000") },
-    { label: f("invStartupLabel","Startup Cost"),value: f("invStartupValue","₹30–35 Lakhs") },
-    { label: f("invRoyaltyLabel","Royalty Fee"), value: f("invRoyaltyValue","5% of Gross Sales") },
-    { label: f("invMktFeeLabel","Marketing Fee"),value: f("invMktFeeValue","2% of Gross Sales") },
+    { label: f("invFeeLabel", "Franchise Fee"), value: f("invFeeValue", "Rs. 5,00,000") },
+    { label: f("invStartupLabel", "Startup Cost"), value: f("invStartupValue", "Rs. 30-35 Lakhs") },
+    { label: f("invRoyaltyLabel", "Royalty Fee"), value: f("invRoyaltyValue", "5% of Gross Sales") },
+    { label: f("invMktFeeLabel", "Marketing Fee"), value: f("invMktFeeValue", "2% of Gross Sales") },
   ]);
   const steps = getArr<{ label: string }>("trainingItems", [
-    { label: f("training1","2-Week Intensive Training") },
-    { label: f("training2","On-Site Launch Support") },
-    { label: f("training3","Ongoing Operational Assistance") },
+    { label: f("training1", "2-Week Intensive Training") },
+    { label: f("training2", "On-Site Launch Support") },
+    { label: f("training3", "Ongoing Operational Assistance") },
   ]);
   const branches = getArr<{ name: string }>("branchItems", [
-    { name: f("branch1","Delhi – 15 Branches") },
-    { name: f("branch2","Rajasthan – Kota") },
-    { name: f("branch3","Uttar Pradesh – 7 Branches") },
+    { name: f("branch1", "Delhi - 15 Branches") },
+    { name: f("branch2", "Rajasthan - Kota") },
+    { name: f("branch3", "Uttar Pradesh - 7 Branches") },
   ]);
 
   return (
-    <main className="min-h-screen bg-background text-white font-sans selection:bg-primary selection:text-black">
+    <main className="min-h-screen bg-[#fff4e4] text-[#2b160c]">
       <Navbar />
 
-      {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(212,175,55,0.22),transparent)] pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_80%_80%,rgba(120,60,200,0.12),transparent)] pointer-events-none" />
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-          <span className="inline-block text-primary font-black tracking-widest text-xs uppercase px-4 py-1.5 bg-primary/10 rounded-full border border-primary/25 mb-6">
-            {f("heroTag","FRANCHISE OPPORTUNITY")}
+      <section className="relative overflow-hidden bg-[#140d09] px-4 pb-16 pt-28 sm:px-6 md:pb-24 md:pt-36">
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,#140d09_0%,#2a1309_54%,#0f1117_100%)]" />
+        <div className="relative mx-auto max-w-6xl text-center">
+          <span className="inline-flex rounded-full border border-[#ffb44a]/25 bg-[#ffb44a]/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-[#ffb44a]">
+            {f("heroTag", "Franchise Opportunity")}
           </span>
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-none mb-6 text-white">
-            {f("heroTitle","Grow With Halal Pizza Fun")}
+          <h1 className="mt-7 font-playfair text-4xl font-black leading-none text-[#fff8ee] sm:text-6xl md:text-7xl">
+            {f("heroTitle", "Grow With Halal Pizza Fun")}
           </h1>
-          <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-4 leading-relaxed font-medium">
+          <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#f8ead7]/72 sm:text-lg">
             {f("heroSubtitle")}
           </p>
-          <p className="text-sm text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">
-            {f("heroDesc")}
-          </p>
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
-            <a href="#apply-form"
-              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-black font-black px-7 py-3.5 rounded-2xl transition-all shadow-lg shadow-primary/30 text-sm">
-              {f("heroCta1","Apply for Franchise")} <ArrowRight className="w-4 h-4" />
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#f8ead7]/56">{f("heroDesc")}</p>
+          <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
+            <a
+              href="#apply-form"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#ef5a24] px-7 py-3.5 text-xs font-black uppercase tracking-[0.14em] text-white shadow-[0_6px_0_#9b3214] transition hover:translate-y-[2px] hover:bg-[#dc4818] hover:shadow-[0_3px_0_#9b3214]"
+            >
+              {f("heroCta1", "Apply for Franchise")}
+              <ArrowRight className="w-4 h-4" />
             </a>
-            <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold px-7 py-3.5 rounded-2xl transition-all text-sm">
-              {f("heroCta2","Download Brochure")}
+            <button className="rounded-2xl border border-[#ffb44a]/25 bg-[#ffb44a]/10 px-7 py-3.5 text-xs font-black uppercase tracking-[0.14em] text-[#ffb44a] transition hover:bg-[#ffb44a]/14">
+              {f("heroCta2", "Download Brochure")}
             </button>
-            <a href="#contact"
-              className="flex items-center gap-2 bg-transparent hover:bg-white/10 border border-white/10 text-white/80 font-bold px-7 py-3.5 rounded-2xl transition-all text-sm">
-              {f("heroCta3","Contact Us")}
+            <a
+              href="#contact"
+              className="rounded-2xl border border-white/20 bg-white/6 px-7 py-3.5 text-xs font-black uppercase tracking-[0.14em] text-white/80 transition hover:bg-white/12"
+            >
+              {f("heroCta3", "Contact Us")}
             </a>
           </div>
         </div>
       </section>
 
-      {/* ── Why Choose Us ────────────────────────────────────────── */}
-      <section className="py-20 border-t border-white/8 bg-white/2">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-14">
-            <span className="text-primary font-bold text-xs tracking-widest uppercase">THE ADVANTAGE</span>
-            <h2 className="text-3xl md:text-5xl font-black mt-3">{f("whyTitle","Why Partner With Halal Pizza Fun?")}</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {whyItems.map((item, i) => {
-              const Icon = WHY_ICONS[i % WHY_ICONS.length];
-              return (
-                <div key={i} className="group p-7 rounded-3xl transition-all duration-300 hover:-translate-y-1" style={{ background: "linear-gradient(145deg, rgba(13,24,41,0.9), rgba(10,18,35,0.95))", border: "1px solid rgba(255,255,255,0.06)" }} onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(212,175,55,0.3)"; }} onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)"; }}>
-                  <div className="w-11 h-11 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 mb-5 group-hover:bg-primary/20 transition-colors">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <h3 className="font-extrabold text-lg mb-2 text-white">{item.title}</h3>
-                  <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-22">
+        <div className="mb-10 text-center">
+          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#a7471b]">The advantage</span>
+          <h2 className="mt-3 font-playfair text-4xl font-black text-[#2b160c] sm:text-5xl">
+            {f("whyTitle", "Why Partner With Halal Pizza Fun?")}
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {whyItems.map((item, i) => {
+            const Icon = WHY_ICONS[i % WHY_ICONS.length];
+            return (
+              <div
+                key={i}
+                className="rounded-[26px] border border-[#ead8c1] bg-[#fffaf2] p-6 shadow-[0_18px_46px_rgba(73,40,18,0.08)] transition duration-300 hover:-translate-y-1 hover:border-[#ef5a24]/35"
+              >
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#fff0dd] text-[#ef5a24]">
+                  <Icon className="w-5 h-5" />
                 </div>
-              );
-            })}
-          </div>
+                <h3 className="text-lg font-black text-[#2b160c]">{item.title}</h3>
+                <p className="mt-2 text-sm leading-7 text-[#6d5342]">{item.desc}</p>
+              </div>
+            );
+          })}
         </div>
       </section>
 
-      {/* ── Opportunity ──────────────────────────────────────────── */}
-      <section className="py-20 max-w-4xl mx-auto px-6 text-center">
-        <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 px-4 py-1.5 rounded-full mb-6">
-          <TrendingUp className="w-4 h-4 text-primary" />
-          <span className="text-primary text-xs font-black uppercase tracking-widest">Opportunity</span>
-        </div>
-        <h2 className="text-3xl md:text-5xl font-black mb-6">{f("oppTitle","Your Slice of the Future")}</h2>
-        <p className="text-white/50 text-lg leading-relaxed">{f("oppDesc")}</p>
-      </section>
-
-      {/* ── Market Growth ─────────────────────────────────────────── */}
-      <section className="py-16 bg-white/2 border-y border-white/8">
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-2xl md:text-4xl font-black text-center mb-12">{f("mktTitle","A Growing Market Opportunity")}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <section className="border-y border-[#ead8c1] bg-[#fff8ee] py-14">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <h2 className="text-center font-playfair text-3xl font-black text-[#2b160c] md:text-4xl">
+            {f("mktTitle", "A Growing Market Opportunity")}
+          </h2>
+          <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {mktStats.map((s, i) => (
-              <div key={i} className="rounded-3xl p-8 text-center transition-all" style={{ background: "linear-gradient(145deg, rgba(13,24,41,0.9), rgba(10,18,35,0.95))", border: "1px solid rgba(255,255,255,0.06)" }} onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(212,175,55,0.3)"; }} onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)"; }}>
-                <div className="text-4xl md:text-5xl font-black text-primary mb-2">{s.value}</div>
-                <div className="text-white/50 text-sm font-semibold uppercase tracking-wider">{s.label}</div>
+              <div key={i} className="rounded-2xl border border-[#ead8c1] bg-white p-6 text-center">
+                <div className="text-4xl font-black text-[#c94618]">{s.value}</div>
+                <div className="mt-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#8f6b52]">{s.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── USP ──────────────────────────────────────────────────── */}
-      <section className="py-20 max-w-5xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-5xl font-black">{f("uspTitle","What Makes Us Different?")}</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+        <h2 className="text-center font-playfair text-3xl font-black text-[#2b160c] md:text-5xl">
+          {f("uspTitle", "What Makes Us Different?")}
+        </h2>
+        <div className="mt-9 grid grid-cols-1 gap-5 sm:grid-cols-3">
           {uspItems.map((item, i) => {
             const Icon = USP_ICONS[i % USP_ICONS.length];
             return (
-              <div key={i} className="relative overflow-hidden rounded-3xl p-8 text-center transition-all group" style={{ background: "linear-gradient(145deg, rgba(13,24,41,0.9), rgba(10,18,35,0.95))", border: "1px solid rgba(255,255,255,0.06)" }} onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(212,175,55,0.3)"; }} onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)"; }}>
-                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Icon className="w-8 h-8 text-primary mx-auto mb-4" />
-                <h3 className="text-xl font-black mb-2">{item.title}</h3>
-                <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
+              <div key={i} className="rounded-3xl border border-[#ead8c1] bg-[#fffaf2] p-7 text-center">
+                <Icon className="mx-auto h-7 w-7 text-[#ef5a24]" />
+                <h3 className="mt-4 text-xl font-black text-[#2b160c]">{item.title}</h3>
+                <p className="mt-2 text-sm leading-7 text-[#6d5342]">{item.desc}</p>
               </div>
             );
           })}
         </div>
       </section>
 
-      {/* ── Investment ───────────────────────────────────────────── */}
-      <section className="py-20 bg-white/2 border-y border-white/8">
-        <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-black text-center mb-10">{f("invTitle","Franchise Investment")}</h2>
-          <div className="rounded-3xl overflow-hidden" style={{ background: "linear-gradient(145deg, rgba(13,24,41,0.9), rgba(10,18,35,0.95))", border: "1px solid rgba(255,255,255,0.06)" }}>
+      <section className="border-y border-[#ead8c1] bg-[#fff8ee] py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <h2 className="text-center font-playfair text-3xl font-black text-[#2b160c] md:text-4xl">
+            {f("invTitle", "Franchise Investment")}
+          </h2>
+          <div className="mt-8 overflow-hidden rounded-3xl border border-[#ead8c1] bg-white">
             {invRows.map((row, i) => (
-              <div key={i} className={`flex items-center justify-between px-8 py-5 ${i < invRows.length - 1 ? "border-b border-white/8" : ""}`}>
-                <span className="text-white/50 font-semibold text-sm">{row.label}</span>
-                <span className="text-white font-black text-lg">{row.value}</span>
+              <div key={i} className={`flex items-center justify-between px-6 py-4 ${i < invRows.length - 1 ? "border-b border-[#ead8c1]" : ""}`}>
+                <span className="text-sm font-semibold text-[#6d5342]">{row.label}</span>
+                <span className="text-sm font-black text-[#2b160c] md:text-lg">{row.value}</span>
               </div>
             ))}
           </div>
-          <p className="text-center text-white/50 text-sm mt-6">{f("invNote")}</p>
+          <p className="mt-5 text-center text-sm text-[#8f6b52]">{f("invNote")}</p>
         </div>
       </section>
 
-      {/* ── Training & Support ───────────────────────────────────── */}
-      <section className="py-20 max-w-5xl mx-auto px-6">
-        <h2 className="text-3xl md:text-4xl font-black text-center mb-12">{f("trainingTitle","Complete Training & Support")}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+      <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+        <h2 className="text-center font-playfair text-3xl font-black text-[#2b160c] md:text-4xl">
+          {f("trainingTitle", "Complete Training & Support")}
+        </h2>
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
           {steps.map((step, i) => {
             const Icon = STEP_ICONS[i % STEP_ICONS.length];
             return (
-              <div key={i} className="flex flex-col items-center text-center rounded-3xl p-8 transition-all" style={{ background: "linear-gradient(145deg, rgba(13,24,41,0.9), rgba(10,18,35,0.95))", border: "1px solid rgba(255,255,255,0.06)" }} onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(212,175,55,0.3)"; }} onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)"; }}>
-                <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center mb-4">
-                  <Icon className="w-6 h-6 text-primary" />
+              <div key={i} className="rounded-3xl border border-[#ead8c1] bg-[#fffaf2] p-7 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff0dd] text-[#ef5a24]">
+                  <Icon className="h-6 w-6" />
                 </div>
-                <span className="text-xs font-black uppercase tracking-widest text-primary mb-2">Step {i + 1}</span>
-                <h3 className="font-extrabold text-lg text-white">{step.label}</h3>
+                <p className="mt-4 text-[11px] font-black uppercase tracking-[0.16em] text-[#a7471b]">Step {i + 1}</p>
+                <h3 className="mt-2 text-lg font-black text-[#2b160c]">{step.label}</h3>
               </div>
             );
           })}
         </div>
-        <p className="text-center text-white/50 leading-relaxed max-w-2xl mx-auto">{f("trainingDesc")}</p>
+        <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-7 text-[#6d5342]">{f("trainingDesc")}</p>
       </section>
 
-
-
-      {/* ── Growth Timeline ───────────────────────────────────────── */}
-      <section className="py-20 max-w-4xl mx-auto px-6 text-center">
-        <h2 className="text-3xl md:text-4xl font-black mb-6">{f("growthTitle","Our Journey & Growth")}</h2>
-        <p className="text-white/50 text-lg leading-relaxed">{f("growthDesc")}</p>
+      <section className="mx-auto max-w-4xl px-4 py-10 text-center sm:px-6">
+        <h2 className="font-playfair text-3xl font-black text-[#2b160c] md:text-4xl">{f("growthTitle", "Our Journey & Growth")}</h2>
+        <p className="mt-4 text-base leading-8 text-[#6d5342]">{f("growthDesc")}</p>
       </section>
 
-      {/* ── Branches ──────────────────────────────────────────────── */}
-      <section className="py-16 bg-white/2 border-y border-white/8">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-2xl md:text-4xl font-black mb-10">{f("branchesTitle","Our Presence")}</h2>
-          <div className="flex flex-wrap justify-center gap-4">
+      <section className="border-y border-[#ead8c1] bg-[#fff8ee] py-14">
+        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
+          <h2 className="font-playfair text-3xl font-black text-[#2b160c] md:text-4xl">
+            {f("branchesTitle", "Our Presence")}
+          </h2>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             {branches.map((b, i) => (
-              <div key={i} className="flex items-center gap-2 px-6 py-4 rounded-2xl transition-all group" style={{ background: "linear-gradient(145deg, rgba(13,24,41,0.9), rgba(10,18,35,0.95))", border: "1px solid rgba(255,255,255,0.06)" }} onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(212,175,55,0.3)"; }} onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)"; }}>
-                <MapPin className="w-4 h-4 text-primary shrink-0" />
-                <span className="font-semibold text-white/80 group-hover:text-white transition-colors">{b.name}</span>
+              <div key={i} className="inline-flex items-center gap-2 rounded-2xl border border-[#ead8c1] bg-white px-5 py-3 text-sm font-semibold text-[#6d5342]">
+                <MapPin className="h-4 w-4 text-[#ef5a24]" />
+                {b.name}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Application Form ──────────────────────────────────────── */}
-      <section className="py-16 md:py-20 max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start">
+      <section className="mx-auto grid max-w-6xl grid-cols-1 gap-9 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:gap-14">
         <div>
-          <span className="text-primary font-bold text-xs uppercase tracking-widest">Apply Now</span>
-          <h2 className="text-3xl md:text-4xl font-black mt-3 mb-4">Start Your Franchise Journey</h2>
-          <p className="text-white/50 leading-relaxed mb-8">Fill in the form to receive our complete franchise brochure and get contacted by our franchise director within 48 hours.</p>
-          <ul className="space-y-4">
-            {["Complete setup & launch support", "Dedicated franchise manager", "Access to proprietary recipes & SOPs", "National marketing campaigns", "Real-time operations dashboard"].map((item, i) => (
+          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#a7471b]">Apply now</span>
+          <h2 className="mt-3 font-playfair text-3xl font-black text-[#2b160c] md:text-4xl">Start Your Franchise Journey</h2>
+          <p className="mt-4 text-sm leading-7 text-[#6d5342]">
+            Fill in the form to receive our complete franchise brochure and get contacted by our franchise director within 48 hours.
+          </p>
+          <ul className="mt-7 space-y-4">
+            {[
+              "Complete setup and launch support",
+              "Dedicated franchise manager",
+              "Access to proprietary recipes and SOPs",
+              "National marketing campaigns",
+              "Real-time operations dashboard",
+            ].map((item, i) => (
               <li key={i} className="flex items-start gap-3">
-                <div className="mt-1 w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-3 h-3 text-primary" />
+                <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#fff0dd]">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-[#ef5a24]" />
                 </div>
-                <span className="text-white/80 font-medium text-sm">{item}</span>
+                <span className="text-sm font-semibold text-[#6d5342]">{item}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div id="apply-form" className="relative">
-          <div className="absolute inset-0 bg-primary/15 blur-3xl rounded-[3rem] pointer-events-none" />
-          <div className="relative p-8 md:p-10 rounded-[2.5rem] shadow-2xl" style={{ background: "linear-gradient(145deg, rgba(13,24,41,0.9), rgba(10,18,35,0.95))", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <h3 className="text-2xl font-black text-white mb-2">Request Information</h3>
-            <p className="text-white/50 text-sm mb-7">Take the first step towards owning a Halal Pizza Fun kitchen.</p>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(["First Name *", "Last Name"] as const).map((label, i) => (
-                  <div key={i}>
-                    <label className="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2">{label}</label>
-                    <input type="text" required={i === 0}
-                      className="w-full bg-background border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors text-sm placeholder:text-white/25"
-                      value={i === 0 ? formData.firstName : formData.lastName}
-                      onChange={e => setFormData({ ...formData, [i === 0 ? "firstName" : "lastName"]: e.target.value })} />
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(["email", "phone"] as const).map((field, i) => (
-                  <div key={i}>
-                    <label className="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2">{field === "email" ? "Email *" : "Phone *"}</label>
-                    <input type={field === "email" ? "email" : "tel"} required
-                      className="w-full bg-background border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors text-sm placeholder:text-white/25"
-                      value={formData[field]}
-                      onChange={e => setFormData({ ...formData, [field]: e.target.value })} />
-                  </div>
-                ))}
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-white/30 uppercase tracking-wider mb-2">Target City *</label>
-                <input type="text" required placeholder="e.g. Delhi, Mumbai, Kota"
-                  className="w-full bg-background border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors text-sm placeholder:text-white/25"
-                  value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-white/30 uppercase tracking-wider mb-2">Liquid Capital *</label>
-                <select className="w-full bg-background border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors appearance-none text-sm"
-                  value={formData.capital} onChange={e => setFormData({ ...formData, capital: e.target.value })}>
-                  <option value="30-50L">₹30 – ₹50 Lakhs</option>
-                  <option value="50-100L">₹50 Lakhs – ₹1 Crore</option>
-                  <option value="1Cr+">₹1 Crore +</option>
-                </select>
-              </div>
-              <button type="submit" disabled={isSubmitting}
-                className="w-full mt-2 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-black font-black px-6 py-4 rounded-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed">
-                {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /> Submitting…</> : <>Submit Application <ArrowRight className="w-5 h-5" /></>}
-              </button>
-              <p className="text-center text-xs text-white/30 pt-1">Your information is secure and will never be shared.</p>
-            </form>
-          </div>
+        <div id="apply-form" className="rounded-[30px] border border-[#ead8c1] bg-[#fffaf2] p-7 shadow-[0_18px_50px_rgba(73,40,18,0.1)] md:p-9">
+          <h3 className="text-2xl font-black text-[#2b160c]">Request Information</h3>
+          <p className="mt-1 text-sm text-[#8f6b52]">Take the first step towards owning a Halal Pizza Fun kitchen.</p>
+          <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {(["First Name *", "Last Name"] as const).map((label, i) => (
+                <div key={i}>
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.16em] text-[#a7471b]">{label}</label>
+                  <input
+                    type="text"
+                    required={i === 0}
+                    className="w-full rounded-xl border border-[#ead8c1] bg-white px-4 py-3 text-sm font-semibold text-[#2b160c] outline-none transition focus:border-[#ef5a24]/55"
+                    value={i === 0 ? formData.firstName : formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, [i === 0 ? "firstName" : "lastName"]: e.target.value })}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {(["email", "phone"] as const).map((field, i) => (
+                <div key={i}>
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.16em] text-[#a7471b]">
+                    {field === "email" ? "Email *" : "Phone *"}
+                  </label>
+                  <input
+                    type={field === "email" ? "email" : "tel"}
+                    required
+                    className="w-full rounded-xl border border-[#ead8c1] bg-white px-4 py-3 text-sm font-semibold text-[#2b160c] outline-none transition focus:border-[#ef5a24]/55"
+                    value={formData[field]}
+                    onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                  />
+                </div>
+              ))}
+            </div>
+            <div>
+              <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.16em] text-[#a7471b]">Target City *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Delhi, Mumbai, Kota"
+                className="w-full rounded-xl border border-[#ead8c1] bg-white px-4 py-3 text-sm font-semibold text-[#2b160c] placeholder:text-[#b89273] outline-none transition focus:border-[#ef5a24]/55"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.16em] text-[#a7471b]">Liquid Capital *</label>
+              <select
+                className="w-full appearance-none rounded-xl border border-[#ead8c1] bg-white px-4 py-3 text-sm font-semibold text-[#2b160c] outline-none transition focus:border-[#ef5a24]/55"
+                value={formData.capital}
+                onChange={(e) => setFormData({ ...formData, capital: e.target.value })}
+              >
+                <option value="30-50L">Rs. 30 - Rs. 50 Lakhs</option>
+                <option value="50-100L">Rs. 50 Lakhs - Rs. 1 Crore</option>
+                <option value="1Cr+">Rs. 1 Crore +</option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#ef5a24] px-6 py-4 text-xs font-black uppercase tracking-[0.14em] text-white shadow-[0_6px_0_#9b3214] transition hover:translate-y-[2px] hover:bg-[#dc4818] hover:shadow-[0_3px_0_#9b3214] disabled:opacity-70"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Submitting
+                </>
+              ) : (
+                <>
+                  Submit Application
+                  <ArrowRight className="h-5 w-5" />
+                </>
+              )}
+            </button>
+            <p className="pt-1 text-center text-xs text-[#8f6b52]">Your information is secure and will never be shared.</p>
+          </form>
         </div>
       </section>
 
-      {/* ── Final CTA ─────────────────────────────────────────────── */}
-      <section id="contact" className="py-24 relative overflow-hidden border-t border-white/8">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_50%,rgba(212,175,55,0.15),transparent)] pointer-events-none" />
-        <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-black mb-6">{f("ctaTitle","Take the Next Step")}</h2>
-          <p className="text-white/50 text-lg mb-10 leading-relaxed">{f("ctaDesc")}</p>
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            <a href="#apply-form"
-              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-black font-black px-8 py-4 rounded-2xl shadow-lg shadow-primary/30 transition-all">
-              {f("ctaBtn1","Apply Now")} <ChevronRight className="w-5 h-5" />
+      <section id="contact" className="relative overflow-hidden bg-[#140d09] px-4 py-18 text-center sm:px-6 md:py-24">
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,#140d09_0%,#2a1309_54%,#0f1117_100%)]" />
+        <div className="relative mx-auto max-w-3xl">
+          <h2 className="font-playfair text-4xl font-black text-[#fff8ee] md:text-5xl">{f("ctaTitle", "Take the Next Step")}</h2>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-[#f8ead7]/65">{f("ctaDesc")}</p>
+          <div className="mt-9 flex flex-wrap justify-center gap-4">
+            <a
+              href="#apply-form"
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#ef5a24] px-8 py-4 text-xs font-black uppercase tracking-[0.14em] text-white shadow-[0_6px_0_#9b3214] transition hover:translate-y-[2px] hover:bg-[#dc4818] hover:shadow-[0_3px_0_#9b3214]"
+            >
+              {f("ctaBtn1", "Apply Now")}
+              <ChevronRight className="h-5 w-5" />
             </a>
-            <a href={`mailto:${f("ctaEmail")}`}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold px-8 py-4 rounded-2xl transition-all">
-              {f("ctaBtn2","Contact Franchise Team")}
+            <a
+              href={`mailto:${f("ctaEmail")}`}
+              className="inline-flex items-center gap-2 rounded-2xl border border-[#ffb44a]/25 bg-[#ffb44a]/10 px-8 py-4 text-xs font-black uppercase tracking-[0.14em] text-[#ffb44a] transition hover:bg-[#ffb44a]/14"
+            >
+              {f("ctaBtn2", "Contact Franchise Team")}
             </a>
           </div>
-          <div className="flex flex-wrap justify-center gap-6">
+          <div className="mt-10 flex flex-wrap justify-center gap-6">
             {[
-              { Icon: Phone, text: f("ctaPhone","+91 8800155198"), href: `tel:${f("ctaPhone")}` },
-              { Icon: Mail,  text: f("ctaEmail","pizzafunindia@gmail.com"), href: `mailto:${f("ctaEmail")}` },
-              { Icon: Globe, text: f("ctaWebsite","halalpizzafun.com"), href: `https://${f("ctaWebsite")}` },
+              { Icon: Phone, text: f("ctaPhone", "+91 8800155198"), href: `tel:${f("ctaPhone")}` },
+              { Icon: Mail, text: f("ctaEmail", "pizzafunindia@gmail.com"), href: `mailto:${f("ctaEmail")}` },
+              { Icon: Globe, text: f("ctaWebsite", "halalpizzafun.com"), href: `https://${f("ctaWebsite")}` },
             ].map(({ Icon, text, href }, i) => (
-              <a key={i} href={href} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-white/80 hover:text-primary transition-colors text-sm font-semibold">
-                <Icon className="w-4 h-4 text-primary" /> {text}
+              <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-[#ffb44a]">
+                <Icon className="h-4 w-4 text-[#ffb44a]" />
+                {text}
               </a>
             ))}
           </div>

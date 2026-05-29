@@ -1,4 +1,4 @@
-name: Deploy to Vercel
+ncname: Deploy to Vercel
 
 on:
   push:
