@@ -101,6 +101,7 @@ async function seed() {
         image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600",
         isAvailable: true,
         isVegetarian: true,
+        foodType: "veg",
         preparationTimeMin: 20,
         categoryId: catMap.Pizza,
         createdAt: new Date()
@@ -112,6 +113,7 @@ async function seed() {
         image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600",
         isAvailable: true,
         isVegetarian: false,
+        foodType: "nonveg",
         preparationTimeMin: 15,
         categoryId: catMap.Sushi,
         createdAt: new Date()
@@ -123,6 +125,7 @@ async function seed() {
         image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600",
         isAvailable: true,
         isVegetarian: false,
+        foodType: "nonveg",
         preparationTimeMin: 12,
         categoryId: catMap.Burgers,
         createdAt: new Date()

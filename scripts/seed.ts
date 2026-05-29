@@ -87,6 +87,7 @@ async function seed() {
         image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=600",
         categoryId: pizzaCategory._id,
         isVegetarian: true,
+        foodType: "veg",
         addons: [{ name: "Extra Truffle", price: 5 }],
       },
       {
@@ -96,6 +97,7 @@ async function seed() {
         image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&q=80&w=600",
         categoryId: sushiCategory._id,
         isVegetarian: false,
+        foodType: "nonveg",
         addons: [{ name: "Spicy Mayo", price: 1 }],
       },
       {
@@ -105,6 +107,7 @@ async function seed() {
         image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=600",
         categoryId: burgersCategory._id,
         isVegetarian: false,
+        foodType: "nonveg",
         addons: [{ name: "Truffle Fries", price: 6 }],
       },
     ];

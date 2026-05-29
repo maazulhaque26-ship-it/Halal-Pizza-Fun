@@ -9,6 +9,7 @@ import { API } from "@/config/constants";
 
 interface Product {
   _id: string; name: string; isAvailable: boolean; isVegetarian: boolean;
+  foodType?: "veg" | "nonveg" | "other";
   price: number; image: string;
 }
 
@@ -69,7 +70,15 @@ export default function BranchInventoryPage() {
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-white text-sm truncate flex items-center gap-1">
                   {p.name}
-                  {p.isVegetarian && <Leaf className="w-3 h-3 text-green-500 shrink-0" />}
+                  {(() => {
+                    const foodType = p.foodType || (p.isVegetarian ? "veg" : "nonveg");
+                    if (foodType === "veg") {
+                      return <Leaf className="w-3 h-3 text-green-500 shrink-0" />;
+                    } else if (foodType === "nonveg") {
+                      return <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />;
+                    }
+                    return null;
+                  })()}
                 </p>
                 <p className="text-xs text-white/40">₹{p.price}</p>
               </div>

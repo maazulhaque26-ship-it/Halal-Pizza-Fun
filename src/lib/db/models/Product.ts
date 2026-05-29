@@ -8,6 +8,7 @@ export interface IProduct extends Document {
   categoryId: mongoose.Types.ObjectId;
   branchId?: mongoose.Types.ObjectId;
   isVegetarian: boolean;
+  foodType?: "veg" | "nonveg" | "other";
   isAvailable: boolean;
   isDeleted: boolean;
   preparationTimeMin: number;
@@ -29,6 +30,7 @@ const ProductSchema = new Schema<IProduct>(
     categoryId: { type: Schema.Types.ObjectId, ref: "Category", required: true },
     branchId: { type: Schema.Types.ObjectId, ref: "Branch" },
     isVegetarian: { type: Boolean, default: false },
+    foodType: { type: String, enum: ["veg", "nonveg", "other"], default: "other" },
     isAvailable: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false, index: true },
     preparationTimeMin: { type: Number, default: 15 },

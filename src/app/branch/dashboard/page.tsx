@@ -11,7 +11,7 @@ import { getSocket, connectSocket } from "@/lib/socket";
 interface Order {
   _id: string; orderId: string; status: string; total: number; createdAt: string; specialInstructions?: string;
   customerId?: { name: string; phone: string };
-  items: { productId?: { name: string; isVegetarian: boolean }; quantity: number; price: number }[];
+  items: { productId?: { name: string; isVegetarian: boolean; foodType?: "veg" | "nonveg" | "other" }; quantity: number; price: number }[];
 }
 
 const ACTION_MAP: Record<string, string[]> = {
@@ -227,7 +227,15 @@ export default function BranchDashboardPage() {
                           <div>
                             <p className="text-sm font-bold text-white/90 flex items-center gap-1">
                               {item.productId?.name || "Item"}
-                              {item.productId?.isVegetarian && <span className="w-2 h-2 rounded-full bg-green-500" />}
+                              {(() => {
+                                const foodType = item.productId?.foodType || (item.productId?.isVegetarian ? "veg" : "nonveg");
+                                if (foodType === "veg") {
+                                  return <span className="w-2 h-2 rounded-full bg-green-500" />;
+                                } else if (foodType === "nonveg") {
+                                  return <span className="w-2 h-2 rounded-full bg-red-500" />;
+                                }
+                                return null;
+                              })()}
                             </p>
                           </div>
                         </div>

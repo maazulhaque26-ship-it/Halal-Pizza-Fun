@@ -26,6 +26,7 @@ interface Product {
   price: number;
   image: string;
   isVegetarian?: boolean;
+  foodType?: "veg" | "nonveg" | "other";
   preparationTimeMin?: number;
   categoryId?: { _id: string; name: string; slug?: string } | string;
   hasVariants?: boolean;
@@ -188,15 +189,23 @@ function ProductCard({
 
           {/* Veg/Non-Veg Badge */}
           <div className="absolute top-3 left-3 flex gap-1.5">
-            {product.isVegetarian ? (
-              <span className="flex items-center gap-1 bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide shadow-lg">
-                <Leaf className="w-2.5 h-2.5" /> Veg
-              </span>
-            ) : (
-              <span className="flex items-center gap-1 bg-red-500/80 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide shadow-lg">
-                <span className="w-2 h-2 rounded-full bg-red-200 inline-block" /> Non-Veg
-              </span>
-            )}
+            {(() => {
+              const foodType = product.foodType || (product.isVegetarian ? "veg" : "nonveg");
+              if (foodType === "veg") {
+                return (
+                  <span className="flex items-center gap-1 bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide shadow-lg">
+                    <Leaf className="w-2.5 h-2.5" /> Veg
+                  </span>
+                );
+              } else if (foodType === "nonveg") {
+                return (
+                  <span className="flex items-center gap-1 bg-red-500/80 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide shadow-lg">
+                    <span className="w-2 h-2 rounded-full bg-red-200 inline-block" /> Non-Veg
+                  </span>
+                );
+              }
+              return null;
+            })()}
           </div>
 
           {/* Floating price badge */}

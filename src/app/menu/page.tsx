@@ -23,6 +23,7 @@ interface Product {
   price: number;
   image: string;
   isVegetarian?: boolean;
+  foodType?: "veg" | "nonveg" | "other";
   preparationTimeMin?: number;
   hasVariants?: boolean;
   // Category still populated for display purposes
@@ -126,15 +127,23 @@ function MenuProductCard({ product, index }: { product: Product; index: number }
           <div className="absolute inset-0 bg-linear-to-t from-[#070f20] via-transparent to-transparent" />
 
           {/* Veg / Non-veg badge */}
-          {product.isVegetarian ? (
-            <span className="absolute top-3 left-3 flex items-center gap-1 bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase">
-              <Leaf className="w-2.5 h-2.5" /> Veg
-            </span>
-          ) : (
-            <span className="absolute top-3 left-3 flex items-center gap-1 bg-red-500/80 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase">
-              <span className="w-2 h-2 rounded-full bg-red-200 inline-block" /> Non-Veg
-            </span>
-          )}
+          {(() => {
+            const foodType = product.foodType || (product.isVegetarian ? "veg" : "nonveg");
+            if (foodType === "veg") {
+              return (
+                <span className="absolute top-3 left-3 flex items-center gap-1 bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase">
+                  <Leaf className="w-2.5 h-2.5" /> Veg
+                </span>
+              );
+            } else if (foodType === "nonveg") {
+              return (
+                <span className="absolute top-3 left-3 flex items-center gap-1 bg-red-500/80 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase">
+                  <span className="w-2 h-2 rounded-full bg-red-200 inline-block" /> Non-Veg
+                </span>
+              );
+            }
+            return null;
+          })()}
 
           {/* Price badge — animates on variant change */}
           <motion.div
@@ -291,7 +300,12 @@ function MenuContent() {
           : p.categoryId === selectedCat
       );
     }
-    if (vegOnly) result = result.filter((p) => p.isVegetarian);
+    if (vegOnly) {
+      result = result.filter((p) => {
+        const ft = p.foodType || (p.isVegetarian ? "veg" : "nonveg");
+        return ft === "veg";
+      });
+    }
     if (query.trim()) {
       const q = query.toLowerCase();
       result = result.filter(

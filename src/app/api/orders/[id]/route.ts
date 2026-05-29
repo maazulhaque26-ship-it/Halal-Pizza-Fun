@@ -42,7 +42,7 @@ export async function GET(
 
     const order = await Order.findOne(query)
       .populate("branchId", "name address contactNumber")
-      .populate("items.productId", "name image isVegetarian")
+      .populate("items.productId", "name image isVegetarian foodType")
       .lean();
 
     if (!order) {

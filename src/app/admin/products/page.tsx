@@ -10,7 +10,7 @@ import { API } from "@/config/constants";
 interface Category { _id: string; name: string; }
 interface Product {
   _id: string; name: string; description: string; price: number;
-  image: string; isVegetarian: boolean; isAvailable: boolean;
+  image: string; isVegetarian: boolean; foodType?: "veg" | "nonveg" | "other"; isAvailable: boolean;
   preparationTimeMin: number; categoryId: { _id: string; name: string } | string;
   hasVariants?: boolean;
 }
@@ -24,7 +24,7 @@ interface VariantRow {
 }
 
 const empty = {
-  name: "", description: "", price: 0, image: "", isVegetarian: false,
+  name: "", description: "", price: 0, image: "", isVegetarian: false, foodType: "other",
   isAvailable: true, preparationTimeMin: 15, categoryId: "", hasVariants: false,
 };
 
@@ -79,6 +79,7 @@ export default function AdminProductsPage() {
       ...p,
       categoryId: p.categoryId && typeof p.categoryId === "object" ? (p.categoryId as any)._id : p.categoryId || "",
       hasVariants: p.hasVariants ?? false,
+      foodType: p.foodType || (p.isVegetarian ? "veg" : "nonveg"),
     });
     setEditing(p);
     resetVariantState();
@@ -162,7 +163,11 @@ export default function AdminProductsPage() {
     setSaving(true);
     try {
       const method = editing ? "PATCH" : "POST";
-      const body = editing ? { id: editing._id, ...form } : form;
+      const updatedForm = {
+        ...form,
+        isVegetarian: form.foodType === "veg"
+      };
+      const body = editing ? { id: editing._id, ...updatedForm } : updatedForm;
       const res = await fetch(API.PRODUCTS, {
         method,
         headers: { "Content-Type": "application/json" },
@@ -265,11 +270,23 @@ export default function AdminProductsPage() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 <div className="absolute top-3 left-3 flex gap-2">
-                  {p.isVegetarian && (
-                    <span className="flex items-center gap-1 bg-green-500 text-white text-[10px] font-black px-2 py-1 rounded-full">
-                      <Leaf className="w-3 h-3" /> VEG
-                    </span>
-                  )}
+                  {(() => {
+                    const foodType = p.foodType || (p.isVegetarian ? "veg" : "nonveg");
+                    if (foodType === "veg") {
+                      return (
+                        <span className="flex items-center gap-1 bg-green-500 text-white text-[10px] font-black px-2 py-1 rounded-full">
+                          <Leaf className="w-3 h-3" /> VEG
+                        </span>
+                      );
+                    } else if (foodType === "nonveg") {
+                      return (
+                        <span className="flex items-center gap-1 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-full">
+                          <span className="w-2 h-2 rounded-full bg-red-200 inline-block" /> NON-VEG
+                        </span>
+                      );
+                    }
+                    return null;
+                  })()}
                   {p.hasVariants && (
                     <span className="flex items-center gap-1 bg-violet-500/80 text-white text-[10px] font-black px-2 py-1 rounded-full">
                       <Package className="w-3 h-3" /> VARIANTS
@@ -372,6 +389,16 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1.5">Food Type *</label>
+                <select className={inputCls} value={form.foodType || "other"}
+                  onChange={e => setForm((p: any) => ({ ...p, foodType: e.target.value }))}>
+                  <option value="veg">Veg</option>
+                  <option value="nonveg">Non-Veg</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Description</label>
                 <textarea className={inputCls} rows={3} value={form.description || ""}
                   onChange={e => setForm((p: any) => ({ ...p, description: e.target.value }))} />
@@ -379,7 +406,7 @@ export default function AdminProductsPage() {
 
               {/* Toggles row */}
               <div className="flex flex-wrap gap-4">
-                {[{ key: "isVegetarian", label: "Vegetarian" }, { key: "isAvailable", label: "Available" }].map(f => (
+                {[{ key: "isAvailable", label: "Available" }].map(f => (
                   <label key={f.key} className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={form[f.key] || false}
                       onChange={e => setForm((p: any) => ({ ...p, [f.key]: e.target.checked }))}
