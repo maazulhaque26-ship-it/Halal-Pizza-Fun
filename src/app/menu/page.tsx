@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Leaf, Clock, Star, X, SlidersHorizontal,
-  ShoppingBag, Check, Sparkles,
+  ShoppingBag, Check, Sparkles, Plus,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -31,6 +31,53 @@ interface Product {
 }
 
 // ── Premium Product Card ─────────────────────────────────────────────────────
+const COLOR_THEMES = [
+  {
+    bg: "bg-[#fff7f0]", // warm orange/beige tint
+    border: "border-[#ffdcc2]",
+    btn: "bg-[#ff6813] hover:bg-[#e05408]",
+    btnBorder: "border-[#d84e06]",
+    shadow: "shadow-[0_4px_0_#a83600]",
+    text: "text-[#3a200d]",
+    desc: "text-[#6b5240]",
+    badgeBg: "bg-[#ff6813]/10 text-[#ff6813]",
+    cartBtnBg: "bg-white text-[#ff6813] border-[#ffdcc2] hover:bg-[#ff6813] hover:text-white",
+  },
+  {
+    bg: "bg-[#f7f0ff]", // soft lavender tint
+    border: "border-[#e0cfff]",
+    btn: "bg-[#6c1cd4] hover:bg-[#5914b3]",
+    btnBorder: "border-[#5211a8]",
+    shadow: "shadow-[0_4px_0_#38077d]",
+    text: "text-[#230d3d]",
+    desc: "text-[#55406b]",
+    badgeBg: "bg-[#6c1cd4]/10 text-[#6c1cd4]",
+    cartBtnBg: "bg-white text-[#6c1cd4] border-[#e0cfff] hover:bg-[#6c1cd4] hover:text-white",
+  },
+  {
+    bg: "bg-[#f0fffa]", // soft mint/teal tint
+    border: "border-[#cfffef]",
+    btn: "bg-[#119d77] hover:bg-[#0d8463]",
+    btnBorder: "border-[#0a6f54]",
+    shadow: "shadow-[0_4px_0_#054b38]",
+    text: "text-[#0d362a]",
+    desc: "text-[#40685e]",
+    badgeBg: "bg-[#119d77]/10 text-[#119d77]",
+    cartBtnBg: "bg-white text-[#119d77] border-[#cfffef] hover:bg-[#119d77] hover:text-white",
+  },
+  {
+    bg: "bg-[#fff0f4]", // soft pink tint
+    border: "border-[#ffcfdd]",
+    btn: "bg-[#d3225a] hover:bg-[#b01646]",
+    btnBorder: "border-[#a3113e]",
+    shadow: "shadow-[0_4px_0_#750426]",
+    text: "text-[#3d0d1b]",
+    desc: "text-[#6b404d]",
+    badgeBg: "bg-[#d3225a]/10 text-[#d3225a]",
+    cartBtnBg: "bg-white text-[#d3225a] border-[#ffcfdd] hover:bg-[#d3225a] hover:text-white",
+  }
+];
+
 function MenuProductCard({ product, index }: { product: Product; index: number }) {
   const { addItem } = useCartStore();
   const { selectedBranch } = useBranchStore();
@@ -40,6 +87,7 @@ function MenuProductCard({ product, index }: { product: Product; index: number }
   const [variantsLoaded, setVariantsLoaded] = useState(false);
 
   const showVariants = product.hasVariants === true;
+  const theme = COLOR_THEMES[index % COLOR_THEMES.length];
 
   // Fetch variants as soon as we know this product uses them
   useEffect(() => {
@@ -98,19 +146,17 @@ function MenuProductCard({ product, index }: { product: Product; index: number }
       className="group relative"
     >
       <div
-        className="relative overflow-hidden rounded-2xl transition-all duration-500 h-full flex flex-col"
+        className={`relative overflow-hidden rounded-[24px] border-2 ${theme.border} ${theme.bg} shadow-md transition-all duration-300 h-full flex flex-col`}
         style={{
-          background: "linear-gradient(145deg, rgba(13,24,41,0.95), rgba(10,18,35,0.98))",
-          border: "1px solid rgba(255,255,255,0.06)",
+          transform: "translateY(0px)",
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(212,175,55,0.25)";
-          (e.currentTarget as HTMLElement).style.boxShadow =
-            "0 16px 50px rgba(0,0,0,0.5), 0 0 25px rgba(212,175,55,0.07)";
+          e.currentTarget.style.transform = "translateY(-6px)";
+          e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.06)";
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.06)";
-          (e.currentTarget as HTMLElement).style.boxShadow = "";
+          e.currentTarget.style.transform = "translateY(0px)";
+          e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.01)";
         }}
       >
         {/* Image */}
@@ -118,104 +164,105 @@ function MenuProductCard({ product, index }: { product: Product; index: number }
           <img
             src={product.image || ASSETS.FALLBACK_FOOD_IMAGE}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             onError={(e) => {
               const t = e.currentTarget;
               if (t.src !== ASSETS.FALLBACK_FOOD_IMAGE) t.src = ASSETS.FALLBACK_FOOD_IMAGE;
             }}
           />
-          <div className="absolute inset-0 bg-linear-to-t from-[#070f20] via-transparent to-transparent" />
 
           {/* Veg / Non-veg badge */}
-          {(() => {
-            const foodType = product.foodType || (product.isVegetarian ? "veg" : "nonveg");
-            if (foodType === "veg") {
-              return (
-                <span className="absolute top-3 left-3 flex items-center gap-1 bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase">
-                  <Leaf className="w-2.5 h-2.5" /> Veg
-                </span>
-              );
-            } else if (foodType === "nonveg") {
-              return (
-                <span className="absolute top-3 left-3 flex items-center gap-1 bg-red-500/80 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase">
-                  <span className="w-2 h-2 rounded-full bg-red-200 inline-block" /> Non-Veg
-                </span>
-              );
-            }
-            return null;
-          })()}
+          <div className="absolute top-3 left-3 z-10">
+            {(() => {
+              const foodType = product.foodType || (product.isVegetarian ? "veg" : "nonveg");
+              if (foodType === "veg") {
+                return (
+                  <span className="flex items-center gap-1 bg-[#119d77] text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                    <Leaf className="w-2.5 h-2.5" /> Veg
+                  </span>
+                );
+              } else if (foodType === "nonveg") {
+                return (
+                  <span className="flex items-center gap-1 bg-[#d3225a] text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white inline-block" /> Non-Veg
+                  </span>
+                );
+              }
+              return null;
+            })()}
+          </div>
 
-          {/* Price badge — animates on variant change */}
-          <motion.div
-            key={currentPrice}
-            initial={{ scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            className="absolute top-3 right-3 bg-primary text-black text-sm font-black px-3 py-1.5 rounded-xl shadow-lg"
+          {/* Quick Plus Basket Button */}
+          <button
+            onClick={handleAdd}
+            className={`absolute top-3 right-3 w-9 h-9 rounded-full border-2 flex items-center justify-center shadow-lg transition-all duration-300 ${theme.cartBtnBg} z-10`}
           >
-            ₹{currentPrice}
-          </motion.div>
+            {added ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+          </button>
         </div>
 
         {/* Content */}
-        <div className="p-4 flex flex-col flex-1">
-          <h3 className="font-bold text-white mb-1 line-clamp-1 group-hover:text-primary transition-colors duration-300 text-sm">
-            {product.name}
-          </h3>
-          <p className="text-xs text-white/40 line-clamp-2 mb-3 leading-relaxed flex-1">
+        <div className="p-5 flex flex-col flex-1">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <h3 className={`font-sans font-black text-sm ${theme.text} leading-tight line-clamp-1`}>
+              {product.name}
+            </h3>
+            <span className={`font-sans font-black text-sm ${theme.text} shrink-0`}>
+              ₹{currentPrice}
+            </span>
+          </div>
+
+          <p className={`text-xs ${theme.desc} line-clamp-2 mb-4 leading-relaxed flex-1`}>
             {product.description}
           </p>
 
           {/* Rating + Time */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 fill-primary text-primary" />
-              <span className="text-xs font-bold text-white/60">4.8</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className={`w-3 h-3 ${s <= 4 ? "fill-amber-400 text-amber-400" : "fill-[#d2c2b4] text-[#d2c2b4]"}`}
+                />
+              ))}
             </div>
             {product.preparationTimeMin && (
-              <div className="flex items-center gap-1 text-white/30">
+              <div className={`flex items-center gap-1 text-[10px] font-bold ${theme.desc} opacity-80`}>
                 <Clock className="w-3 h-3" />
-                <span className="text-xs">{product.preparationTimeMin} min</span>
+                <span>{product.preparationTimeMin} mins</span>
               </div>
             )}
           </div>
 
-          {/* ── Variant Chip Selector ─────────────────────────────────────── */}
+          {/* ── Variant Selector ── */}
           {showVariants && (
-            <div className="mb-3">
+            <div className="mb-4">
               {!variantsLoaded ? (
-                // Skeleton while loading
                 <div className="flex gap-1.5">
                   {[1, 2, 3].map((n) => (
-                    <div key={n} className="h-7 w-16 bg-white/5 rounded-lg animate-pulse" />
+                    <div key={n} className="h-7 w-16 bg-black/5 rounded-lg animate-pulse" />
                   ))}
                 </div>
               ) : hasLoadedVariants ? (
-                <div
-                  className="flex flex-wrap gap-1.5"
-                  role="radiogroup"
-                  aria-label="Select size"
-                >
+                <div className="flex flex-wrap gap-1.5">
                   {variants.map((v) => {
                     const isSelected = selectedVariant?._id === v._id;
                     return (
                       <button
                         key={v._id}
-                        role="radio"
-                        aria-checked={isSelected}
-                        aria-label={`${v.variantName} — ₹${v.price}`}
                         onClick={() => v.isAvailable && setSelectedVariant(v)}
                         disabled={!v.isAvailable}
-                        className={[
-                          "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-150 border ${
                           isSelected
-                            ? "bg-primary text-black shadow-md shadow-primary/30 scale-105"
-                            : "bg-white/8 text-white/70 border border-white/10 hover:border-primary/40 hover:text-white",
-                          !v.isAvailable ? "opacity-35 cursor-not-allowed line-through" : "cursor-pointer",
-                        ].join(" ")}
+                            ? `bg-black/5 ${theme.text} border-black/20`
+                            : `bg-white/50 ${theme.desc} border-black/5 hover:border-black/20`
+                        }`}
                       >
                         {v.variantName}
-                        {isSelected && <Check className="w-2.5 h-2.5 inline ml-1 mb-0.5" />}
                       </button>
                     );
                   })}
@@ -224,23 +271,15 @@ function MenuProductCard({ product, index }: { product: Product; index: number }
             </div>
           )}
 
-          {/* Add to Cart */}
-          <motion.button
+          {/* Retro 3D Add to Cart CTA */}
+          <button
             onClick={handleAdd}
-            whileTap={{ scale: 0.96 }}
             disabled={showVariants && hasLoadedVariants && !selectedVariant}
-            className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
-              added
-                ? "bg-emerald-500 text-white"
-                : "bg-primary hover:bg-accent text-black shadow-lg shadow-primary/20"
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`w-full py-3 rounded-xl font-sans font-black text-xs uppercase tracking-wider text-white border-2 ${theme.btnBorder} ${theme.btn} ${theme.shadow} flex items-center justify-center gap-2 hover:translate-y-[2px] hover:shadow-[0_2px_0_rgba(0,0,0,0.15)] active:translate-y-[4px] active:shadow-none transition-all duration-150`}
           >
-            {added ? (
-              <><Check className="w-4 h-4" /> Added!</>
-            ) : (
-              <><ShoppingBag className="w-4 h-4" /> Add to Cart</>
-            )}
-          </motion.button>
+            <span>{added ? "Added!" : "Order Now"}</span>
+            <span className="text-sm">🍳</span>
+          </button>
         </div>
       </div>
     </motion.div>

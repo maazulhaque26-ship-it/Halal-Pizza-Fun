@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, MessageSquareQuote, Upload, Loader2, CheckCircle2, UserPlus, Send, Sparkles } from "lucide-react";
+import { Star, Upload, Loader2, CheckCircle2, UserPlus, Send, Quote } from "lucide-react";
 import Image from "next/image";
 import { toast } from "@/components/ui/Toast";
 
@@ -48,10 +48,7 @@ const FALLBACK_REVIEWS: Review[] = [
 
 export default function ReviewSection() {
   const [reviews, setReviews] = useState<Review[]>(FALLBACK_REVIEWS);
-  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-
-  // Form State
   const [guestName, setGuestName] = useState("");
   const [guestAvatar, setGuestAvatar] = useState("");
   const [rating, setRating] = useState(5);
@@ -64,14 +61,10 @@ export default function ReviewSection() {
       const res = await fetch("/api/reviews", { cache: "no-store" });
       const data = await res.json();
       if (data.success) {
-        // Always replace with DB data; only fall back if DB returns empty
         setReviews(data.data && data.data.length > 0 ? data.data : FALLBACK_REVIEWS);
       }
     } catch (err) {
       console.error("Failed to fetch reviews:", err);
-      // Keep current reviews (could be optimistic or fallback)
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -125,15 +118,13 @@ export default function ReviewSection() {
 
       const data = await res.json();
       if (data.success) {
-        toast.success("Thank you! Your review is now live 🎉");
-        // Optimistically prepend the full review returned by the API
-        setReviews(prev => [data.data, ...prev]);
+        toast.success("Thank you! Your review is now live.");
+        setReviews((prev) => [data.data, ...prev]);
         setGuestName("");
         setGuestAvatar("");
         setRating(5);
         setComment("");
         setShowForm(false);
-        // Re-fetch after a short delay to sync with DB
         setTimeout(() => fetchReviews(), 1500);
       } else {
         throw new Error(data.error || "Failed to submit review");
@@ -146,284 +137,147 @@ export default function ReviewSection() {
   };
 
   return (
-    <section className="relative py-16 md:py-24 px-4 sm:px-6 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-linear-to-b from-[#070f20] via-background to-[#070f20]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.04),transparent_55%)]" />
-      <motion.div
-        animate={{ scale: [1, 1.2, 1], opacity: [0.03, 0.07, 0.03] }}
-        transition={{ duration: 8, repeat: Infinity }}
-        className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-primary rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"
-      />
-
-      <div className="relative max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+    <section className="relative overflow-hidden bg-[#fff4e4] px-4 py-18 sm:px-6 md:py-24">
+      <div className="relative mx-auto max-w-7xl">
+        <div className="mb-10 grid gap-6 lg:grid-cols-[0.82fr_1fr] lg:items-end">
           <div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <span className="section-tag mb-4 inline-flex">
-                <Sparkles className="w-3 h-3" />
-                Guest Experiences
-              </span>
-            </motion.div>
-            <motion.h2
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.05 }}
-              className="text-4xl md:text-5xl font-black text-white mt-4 mb-4 tracking-tight"
-            >
-              Loved by <em className="text-gradient not-italic">Our Guests</em>
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-white/45 text-base max-w-2xl"
-            >
-              Discover what our wonderful patrons say about our culinary dishes, hospitality, and swift delivery service.
-            </motion.p>
+            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#a7471b]">
+              Guest notes
+            </span>
+            <h2 className="mt-3 font-playfair text-4xl font-black leading-tight text-[#2b160c] sm:text-5xl">
+              Reviews that feel written at the table.
+            </h2>
           </div>
-
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl font-black text-sm self-start md:self-auto transition-all duration-300 shrink-0"
-            style={{
-              background: showForm ? "rgba(212,175,55,0.15)" : "linear-gradient(135deg, #D4AF37, #C5A028)",
-              color: showForm ? "#D4AF37" : "#000",
-              border: showForm ? "1px solid rgba(212,175,55,0.3)" : "none",
-              boxShadow: "0 8px 20px rgba(212,175,55,0.25)",
-            }}
-          >
-            <UserPlus className="w-4 h-4" />
-            {showForm ? "Close Review Form" : "Write a Review"}
-          </motion.button>
+          <div className="lg:pl-10">
+            <p className="max-w-2xl text-sm font-medium leading-7 text-[#6c4d39] sm:text-base">
+              Little notes from people who came hungry, ordered their favorites, and remembered the first bite.
+            </p>
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#2b160c] px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#fff8ee] shadow-sm transition hover:-translate-y-0.5"
+            >
+              <UserPlus className="h-4 w-4 text-[#ffb44a]" />
+              {showForm ? "Close Guestbook" : "Leave a Review"}
+            </button>
+          </div>
         </div>
 
-        {/* Expandable Review Form */}
         <AnimatePresence>
           {showForm && (
             <motion.div
-              initial={{ opacity: 0, height: 0, y: -20 }}
+              initial={{ opacity: 0, height: 0, y: -12 }}
               animate={{ opacity: 1, height: "auto", y: 0 }}
-              exit={{ opacity: 0, height: 0, y: -20 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="mb-16 overflow-hidden"
+              exit={{ opacity: 0, height: 0, y: -12 }}
+              transition={{ duration: 0.35 }}
+              className="mb-10 overflow-hidden"
             >
-              <form
-                onSubmit={handleSubmitReview}
-                className="relative max-w-3xl mx-auto rounded-3xl p-8 md:p-10 overflow-hidden"
-                style={{
-                  background: "linear-gradient(145deg, rgba(13,24,41,0.95), rgba(10,18,35,0.98))",
-                  border: "1px solid rgba(212,175,55,0.15)",
-                  boxShadow: "0 25px 60px rgba(0,0,0,0.5), 0 0 40px rgba(212,175,55,0.06)",
-                }}
-              >
-                {/* Top border glow */}
-                <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/30 to-transparent" />
-                {/* Corner glow */}
-                <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-[60px]" />
-
-                <h3 className="text-2xl font-black text-white mb-6 relative z-10">
-                  Share Your Experience
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 relative z-10">
-                  {/* Name Input */}
-                  <div>
-                    <label className="block text-xs font-black text-white/40 uppercase tracking-widest mb-2">Your Name</label>
+              <form onSubmit={handleSubmitReview} className="rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] p-5 shadow-[0_20px_60px_rgba(73,40,18,0.1)] sm:p-7">
+                <div className="grid gap-5 md:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.18em] text-[#a7471b]">Your Name</span>
                     <input
                       type="text"
                       value={guestName}
                       onChange={(e) => setGuestName(e.target.value)}
                       placeholder="e.g. John Doe"
-                      className="w-full px-4 py-3 rounded-xl text-white placeholder:text-white/25 text-sm font-medium transition-all focus:outline-none"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-                      onFocus={e => (e.currentTarget.style.borderColor = "rgba(212,175,55,0.4)")}
-                      onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
+                      className="w-full rounded-2xl border border-[#ead8c1] bg-white px-4 py-3 text-sm font-semibold text-[#2b160c] outline-none transition focus:border-[#ef5a24]/55"
                     />
-                  </div>
+                  </label>
 
-                  {/* Rating Selector */}
                   <div>
-                    <label className="block text-xs font-black text-white/40 uppercase tracking-widest mb-2">Rating</label>
-                    <div
-                      className="flex items-center justify-between h-11.5 rounded-xl px-4"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    >
+                    <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.18em] text-[#a7471b]">Rating</span>
+                    <div className="flex h-[46px] items-center justify-between rounded-2xl border border-[#ead8c1] bg-white px-4">
                       <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            type="button"
-                            key={star}
-                            onClick={() => setRating(star)}
-                            className="focus:outline-none p-0.5 transition-transform hover:scale-110 active:scale-95"
-                          >
-                            <Star className={`w-5 h-5 ${star <= rating ? "fill-primary text-primary" : "text-white/20"}`} />
+                          <button key={star} type="button" onClick={() => setRating(star)} className="p-0.5">
+                            <Star className={`h-5 w-5 ${star <= rating ? "fill-[#ffb44a] text-[#ffb44a]" : "text-[#d6c5ae]"}`} />
                           </button>
                         ))}
                       </div>
-                      <span className="font-black text-white text-sm">{rating}.0 / 5.0</span>
+                      <span className="text-sm font-black text-[#2b160c]">{rating}.0</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Profile Image Uploader */}
-                <div className="mb-6 relative z-10">
-                  <label className="block text-xs font-black text-white/40 uppercase tracking-widest mb-2">Profile Photo (Optional)</label>
-                  <div
-                    className="flex items-center gap-5 rounded-xl p-4"
-                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
-                  >
-                    <div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden shrink-0"
-                      style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.15)" }}
-                    >
+                <div className="mt-5 rounded-2xl border border-[#ead8c1] bg-white p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#fff0dd]">
                       {guestAvatar ? (
-                        <Image src={guestAvatar} alt="Avatar" width={56} height={56} className="w-full h-full object-cover" />
+                        <Image src={guestAvatar} alt="Avatar" width={56} height={56} className="h-full w-full object-cover" />
                       ) : (
-                        <Upload className="w-5 h-5 text-primary/40" />
+                        <Upload className="h-5 w-5 text-[#a7471b]" />
                       )}
                     </div>
                     <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        id="guest-avatar-upload"
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="guest-avatar-upload"
-                        className="inline-flex items-center gap-2 text-xs font-bold cursor-pointer px-4 py-2.5 rounded-xl transition-all"
-                        style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", color: "#D4AF37" }}
-                      >
-                        {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                        {uploading ? "Uploading..." : "Choose Photo"}
+                      <input id="guest-avatar-upload" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                      <label htmlFor="guest-avatar-upload" className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#ef5a24]/25 px-4 py-2 text-xs font-black uppercase tracking-wider text-[#c94618]">
+                        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        {uploading ? "Uploading" : "Choose Photo"}
                       </label>
                     </div>
                   </div>
                 </div>
 
-                {/* Comment Input */}
-                <div className="mb-7 relative z-10">
-                  <label className="block text-xs font-black text-white/40 uppercase tracking-widest mb-2">Your Review</label>
+                <label className="mt-5 block">
+                  <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.18em] text-[#a7471b]">Your Review</span>
                   <textarea
                     rows={4}
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    placeholder="Tell us about the taste of the food, delivery speed, and your overall experience..."
-                    className="w-full px-4 py-3 rounded-xl text-white placeholder:text-white/25 text-sm font-medium transition-all focus:outline-none resize-none"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    onFocus={e => (e.currentTarget.style.borderColor = "rgba(212,175,55,0.4)")}
-                    onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
+                    placeholder="Tell us about the taste, delivery speed, and your overall experience..."
+                    className="w-full resize-none rounded-2xl border border-[#ead8c1] bg-white px-4 py-3 text-sm font-semibold leading-6 text-[#2b160c] outline-none transition focus:border-[#ef5a24]/55"
                   />
-                </div>
+                </label>
 
-                {/* Submit */}
                 <button
                   type="submit"
                   disabled={submitting || uploading}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-black text-sm transition-all disabled:opacity-60 relative z-10"
-                  style={{
-                    background: "linear-gradient(135deg, #D4AF37, #C5A028)",
-                    color: "#000",
-                    boxShadow: "0 8px 24px rgba(212,175,55,0.35)",
-                  }}
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#ef5a24] px-5 py-3.5 text-sm font-black uppercase tracking-[0.12em] text-white shadow-[0_6px_0_#9b3214] transition hover:translate-y-[2px] hover:bg-[#dc4818] hover:shadow-[0_3px_0_#9b3214] disabled:opacity-60"
                 >
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  {submitting ? "Publishing Review..." : "Publish My Review"}
+                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  {submitting ? "Publishing" : "Publish Review"}
                 </button>
               </form>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Reviews Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {reviews.map((rev, index) => {
             const authorName = rev.guestName || rev.user?.name || "Anonymous Foodie";
             const authorAvatar = rev.guestAvatar || rev.user?.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200";
-            const dateStr = rev.createdAt ? (() => {
-              const date = new Date(rev.createdAt);
-              return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
-            })() : "Just now";
+            const dateStr = rev.createdAt ? new Date(rev.createdAt).toLocaleDateString() : "Just now";
+            const tilt = index % 3 === 0 ? "-rotate-1" : index % 3 === 1 ? "rotate-1" : "";
 
             return (
-              <motion.div
+              <motion.article
                 key={rev._id || index}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.55, delay: index * 0.1 }}
-                className="group relative rounded-3xl p-7 flex flex-col justify-between transition-all duration-500 overflow-hidden card-hover"
-                style={{
-                  background: "linear-gradient(145deg, rgba(13,24,41,0.9), rgba(10,18,35,0.95))",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(212,175,55,0.3)";
-                  (e.currentTarget as HTMLElement).style.boxShadow = "0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(212,175,55,0.08)";
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.06)";
-                  (e.currentTarget as HTMLElement).style.boxShadow = "";
-                }}
+                transition={{ duration: 0.5, delay: index * 0.06 }}
+                className={`group relative flex min-h-[300px] flex-col rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] p-6 shadow-[0_18px_46px_rgba(73,40,18,0.08)] transition duration-300 hover:-translate-y-1 hover:rotate-0 hover:border-[#ef5a24]/35 ${tilt}`}
               >
-                {/* Top border glow */}
-                <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
-
-                {/* Decorative quote icon */}
-                <MessageSquareQuote className="absolute top-5 right-5 w-20 h-20 text-white/2.5 -rotate-12 group-hover:scale-110 transition-transform duration-500" />
-
-                <div className="relative z-10">
-                  {/* Star rating badge */}
-                  <div
-                    className="flex items-center gap-1 mb-5 w-fit px-3 py-1.5 rounded-full"
-                    style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.15)" }}
-                  >
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-3 h-3 ${star <= rev.rating ? "fill-primary text-primary" : "text-white/20"}`}
-                      />
-                    ))}
-                    <span className="ml-1 text-xs font-black text-primary">{rev.rating}.0</span>
-                  </div>
-
-                  <p className="text-white/65 text-sm leading-relaxed mb-7 italic">
-                    &ldquo;{rev.comment}&rdquo;
-                  </p>
+                <Quote className="absolute right-5 top-5 h-12 w-12 text-[#ef5a24]/10" />
+                <div className="mb-5 flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className={`h-4 w-4 ${star <= rev.rating ? "fill-[#ffb44a] text-[#ffb44a]" : "text-[#d6c5ae]"}`} />
+                  ))}
                 </div>
-
-                <div
-                  className="flex items-center gap-3 pt-5 relative z-10"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
-                >
-                  <div className="w-11 h-11 rounded-full overflow-hidden shrink-0"
-                    style={{ border: "1px solid rgba(212,175,55,0.2)" }}
-                  >
-                    <Image src={authorAvatar} alt={authorName} width={44} height={44} className="w-full h-full object-cover" />
-                  </div>
+                <p className="relative z-10 flex-1 font-playfair text-xl font-semibold leading-8 text-[#3a2114]">
+                  "{rev.comment}"
+                </p>
+                <div className="mt-6 flex items-center gap-3 border-t border-[#ead8c1] pt-4">
+                  <img src={authorAvatar} alt={authorName} width={48} height={48} className="h-12 w-12 rounded-full object-cover" />
                   <div className="min-w-0">
-                    <h4 className="font-bold text-white text-sm leading-tight mb-0.5 group-hover:text-primary transition-colors truncate">
-                      {authorName}
-                    </h4>
-                    <p className="text-[11px] text-white/35 font-medium flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                      Verified Guest &bull; {dateStr}
+                    <h4 className="truncate text-sm font-black text-[#2b160c]">{authorName}</h4>
+                    <p className="mt-0.5 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#8f6b52]">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-[#16724f]" />
+                      Verified Guest | {dateStr}
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </motion.article>
             );
           })}
         </div>

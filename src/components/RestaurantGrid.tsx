@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ShoppingBag, Star, Clock, Leaf, ChevronDown, Plus, Check, Sparkles,
-} from "lucide-react";
+import { ShoppingBag, Star, Clock, Leaf, ChevronDown, Plus, Check, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { useBranchStore } from "@/store/useBranchStore";
 import { ASSETS, ROUTES } from "@/config/constants";
@@ -37,14 +35,13 @@ interface RestaurantGridProps {
   products?: Product[];
 }
 
-// Static fallback cards for when DB has no data yet
 const FALLBACK_PRODUCTS: Product[] = [
   {
     _id: "f1",
     name: "The Golden Truffle Pizza",
     description: "Premium truffle oil, wild mushrooms, and aged mozzarella on a crispy base.",
     price: 320,
-    image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=600&q=80",
+    image: "/pizza.png",
     isVegetarian: true,
     preparationTimeMin: 25,
   },
@@ -53,7 +50,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     name: "Wagyu Craft Burger",
     description: "Double wagyu patty, caramelized onions, special sauce on artisan brioche.",
     price: 240,
-    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80",
+    image: "/hero-bg.png",
     isVegetarian: false,
     preparationTimeMin: 15,
   },
@@ -62,7 +59,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     name: "Sushi Zen Platter",
     description: "Assorted premium nigiri and sashimi crafted by our master chef.",
     price: 450,
-    image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=600&q=80",
+    image: "/hero-bg.png",
     isVegetarian: false,
     preparationTimeMin: 20,
   },
@@ -71,13 +68,12 @@ const FALLBACK_PRODUCTS: Product[] = [
     name: "Mediterranean Bowl",
     description: "Falafel, hummus, tabbouleh, and fresh veggies over saffron rice.",
     price: 180,
-    image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80",
+    image: "/pizza.png",
     isVegetarian: true,
     preparationTimeMin: 12,
   },
 ];
 
-// Categories that support variant dropdown (by slug or name match)
 const VARIANT_CATEGORY_SLUGS = ["pizza", "cheeza", "cheezas"];
 
 function isCategoryVariantEnabled(categoryId: Product["categoryId"]): boolean {
@@ -88,14 +84,7 @@ function isCategoryVariantEnabled(categoryId: Product["categoryId"]): boolean {
   return VARIANT_CATEGORY_SLUGS.some((s) => name.includes(s) || slug.includes(s));
 }
 
-/** Single premium product card */
-function ProductCard({
-  product,
-  index,
-}: {
-  product: Product;
-  index: number;
-}) {
+function ProductCard({ product, index }: { product: Product; index: number }) {
   const { addItem } = useCartStore();
   const { selectedBranch } = useBranchStore();
   const [added, setAdded] = useState(false);
@@ -104,8 +93,8 @@ function ProductCard({
   const [variantOpen, setVariantOpen] = useState(false);
   const [loadingVariants, setLoadingVariants] = useState(false);
   const showVariants = isCategoryVariantEnabled(product.categoryId);
+  const prominent = index % 7 === 0;
 
-  // Lazy-load variants when needed
   useEffect(() => {
     if (showVariants && variants.length === 0) {
       setLoadingVariants(true);
@@ -127,7 +116,7 @@ function ProductCard({
 
   const handleAddToCart = () => {
     const itemLabel = selectedVariant
-      ? `${product.name} — ${selectedVariant.variantName}`
+      ? `${product.name} - ${selectedVariant.variantName}`
       : product.name;
 
     addItem(
@@ -145,135 +134,106 @@ function ProductCard({
     );
 
     setAdded(true);
-    toast.success(`${itemLabel} added to cart! 🍕`);
+    toast.success(`${itemLabel} added to cart!`);
     setTimeout(() => setAdded(false), 2000);
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 34 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, delay: index * 0.07 }}
-      className="group relative"
+      transition={{ duration: 0.55, delay: index * 0.05 }}
+      className={prominent ? "lg:col-span-2" : ""}
     >
-      <div
-        className="relative overflow-hidden rounded-2xl transition-all duration-500"
-        style={{
-          background: "linear-gradient(145deg, rgba(13,24,41,0.95), rgba(10,18,35,0.98))",
-          border: "1px solid rgba(255,255,255,0.06)",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
-        }}
-        onMouseEnter={e => {
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(212,175,55,0.25)";
-          (e.currentTarget as HTMLElement).style.boxShadow = "0 16px 60px rgba(0,0,0,0.5), 0 0 30px rgba(212,175,55,0.08)";
-        }}
-        onMouseLeave={e => {
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.06)";
-          (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 40px rgba(0,0,0,0.4)";
-        }}
-      >
-        {/* ── Image ── */}
-        <div className="relative h-52 overflow-hidden">
+      <div className="group relative h-full overflow-hidden rounded-[26px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_42px_rgba(73,40,18,0.08)] transition duration-300 hover:-translate-y-1.5 hover:border-[#ef5a24]/40 hover:shadow-[0_28px_70px_rgba(73,40,18,0.16)]">
+        <div className={`relative overflow-hidden ${prominent ? "h-80" : "h-60"}`}>
           <img
             src={product.image || ASSETS.FALLBACK_FOOD_IMAGE}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
             onError={(e) => {
               const t = e.currentTarget;
               if (t.src !== ASSETS.FALLBACK_FOOD_IMAGE) t.src = ASSETS.FALLBACK_FOOD_IMAGE;
             }}
           />
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-linear-to-t from-[#070f20] via-transparent to-transparent" />
-
-          {/* Veg/Non-Veg Badge */}
-          <div className="absolute top-3 left-3 flex gap-1.5">
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_35%,rgba(0,0,0,0.55)_100%)]" />
+          <div className="absolute left-4 top-4 flex flex-wrap gap-2">
             {(() => {
               const foodType = product.foodType || (product.isVegetarian ? "veg" : "nonveg");
               if (foodType === "veg") {
                 return (
-                  <span className="flex items-center gap-1 bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide shadow-lg">
-                    <Leaf className="w-2.5 h-2.5" /> Veg
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/92 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#16724f] shadow-sm">
+                    <Leaf className="h-3 w-3" /> Veg
                   </span>
                 );
-              } else if (foodType === "nonveg") {
+              }
+              if (foodType === "nonveg") {
                 return (
-                  <span className="flex items-center gap-1 bg-red-500/80 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide shadow-lg">
-                    <span className="w-2 h-2 rounded-full bg-red-200 inline-block" /> Non-Veg
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/92 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#b22924] shadow-sm">
+                    <span className="h-2 w-2 rounded-full bg-[#b22924]" /> Non-Veg
                   </span>
                 );
               }
               return null;
             })()}
           </div>
-
-          {/* Floating price badge */}
-          <motion.div
-            key={currentPrice}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="absolute top-3 right-3 bg-primary text-black text-sm font-black px-3 py-1.5 rounded-xl shadow-lg shadow-primary/30"
+          <button
+            onClick={handleAddToCart}
+            className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/80 bg-white text-[#31170d] shadow-[0_12px_30px_rgba(0,0,0,0.18)] transition hover:scale-105 hover:bg-[#ffb44a]"
+            aria-label={`Add ${product.name} to cart`}
           >
-            ₹{currentPrice}
-          </motion.div>
-        </div>
-
-        {/* ── Content ── */}
-        <div className="p-5">
-          <h3 className="text-base font-bold text-white mb-1 line-clamp-1 group-hover:text-primary transition-colors duration-300">
-            {product.name}
-          </h3>
-          <p className="text-sm text-white/50 mb-4 line-clamp-2 leading-relaxed">
-            {product.description}
-          </p>
-
-          {/* Rating + Time */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-1.5">
+            {added ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          </button>
+          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4">
+            <div className="flex items-center gap-1 rounded-full bg-black/45 px-3 py-1.5 backdrop-blur-md">
               {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  className={`w-3.5 h-3.5 ${s <= 4 ? "fill-primary text-primary" : "fill-white/10 text-white/20"}`}
-                />
+                <Star key={s} className={`h-3.5 w-3.5 ${s <= 4 ? "fill-[#ffbf3f] text-[#ffbf3f]" : "fill-white/20 text-white/20"}`} />
               ))}
-              <span className="text-xs font-bold text-white/60 ml-1">4.8</span>
             </div>
             {product.preparationTimeMin && (
-              <div className="flex items-center gap-1 text-white/40">
-                <Clock className="w-3.5 h-3.5" />
-                <span className="text-xs font-semibold">{product.preparationTimeMin} min</span>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/92 px-3 py-1.5 text-[11px] font-black text-[#3b2418]">
+                <Clock className="h-3.5 w-3.5 text-[#ef5a24]" />
+                {product.preparationTimeMin} min
               </div>
             )}
           </div>
+        </div>
 
-          {/* ── Variant Dropdown ── */}
+        <div className="flex h-[calc(100%-15rem)] flex-col p-5 sm:p-6">
+          <div className="mb-3 flex items-start justify-between gap-4">
+            <h3 className="line-clamp-2 font-playfair text-2xl font-black leading-tight text-[#2b160c]">
+              {product.name}
+            </h3>
+            <span className="shrink-0 rounded-full bg-[#2b160c] px-3 py-1.5 text-sm font-black text-[#fff6e8]">
+              Rs. {currentPrice}
+            </span>
+          </div>
+
+          <p className="mb-5 line-clamp-2 text-sm font-medium leading-6 text-[#6d5342]">
+            {product.description}
+          </p>
+
           {showVariants && (
-            <div className="mb-4 relative">
+            <div className="relative mb-4">
               {loadingVariants ? (
-                <div className="w-full h-10 bg-white/5 rounded-xl animate-pulse" />
+                <div className="h-11 w-full animate-pulse rounded-2xl bg-[#ead8c1]" />
               ) : hasVariantData ? (
-                <div className="relative">
+                <>
                   <button
                     onClick={() => setVariantOpen((v) => !v)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/30 rounded-xl text-sm font-semibold text-white transition-all"
+                    className="flex w-full items-center justify-between rounded-2xl border border-[#ead8c1] bg-white px-4 py-3 text-xs font-black uppercase tracking-[0.13em] text-[#4a2614] transition hover:border-[#ef5a24]/40"
                   >
-                    <span className="truncate">
-                      {selectedVariant ? `${selectedVariant.variantName} — ₹${selectedVariant.price}` : "Select Size"}
-                    </span>
-                    <ChevronDown
-                      className={`w-4 h-4 text-white/50 ml-2 shrink-0 transition-transform duration-200 ${variantOpen ? "rotate-180" : ""}`}
-                    />
+                    <span className="truncate">{selectedVariant ? selectedVariant.variantName : "Choose Size"}</span>
+                    <ChevronDown className={`ml-2 h-4 w-4 transition ${variantOpen ? "rotate-180" : ""}`} />
                   </button>
-
                   <AnimatePresence>
                     {variantOpen && (
                       <motion.div
-                        initial={{ opacity: 0, y: -8, scaleY: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scaleY: 1 }}
-                        exit={{ opacity: 0, y: -8, scaleY: 0.9 }}
-                        style={{ transformOrigin: "top", background: "rgba(13,24,41,0.98)", border: "1px solid rgba(212,175,55,0.15)" }}
-                        className="absolute top-full left-0 right-0 mt-1.5 z-20 rounded-xl overflow-hidden shadow-2xl shadow-black/60"
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-[#ead8c1] bg-white shadow-xl"
                       >
                         {variants.map((v) => (
                           <button
@@ -283,54 +243,30 @@ function ProductCard({
                               setVariantOpen(false);
                             }}
                             disabled={!v.isAvailable}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-sm font-semibold transition-colors ${
-                              selectedVariant?._id === v._id
-                                ? "bg-primary/15 text-primary"
-                                : "text-white/80 hover:bg-white/5"
-                            } ${!v.isAvailable ? "opacity-40 cursor-not-allowed" : ""}`}
+                            className={`flex w-full items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-wider transition ${
+                              selectedVariant?._id === v._id ? "bg-[#fff0dd] text-[#c94618]" : "text-[#4a2614] hover:bg-[#fff7ec]"
+                            } ${!v.isAvailable ? "cursor-not-allowed opacity-35" : ""}`}
                           >
                             <span>{v.variantName}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="font-black text-primary">₹{v.price}</span>
-                              {selectedVariant?._id === v._id && (
-                                <Check className="w-3.5 h-3.5 text-primary" />
-                              )}
-                            </div>
+                            <span>Rs. {v.price}</span>
                           </button>
                         ))}
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
-              ) : (
-                <p className="text-xs text-white/30 text-center py-1">No size variants configured</p>
-              )}
+                </>
+              ) : null}
             </div>
           )}
 
-          {/* ── Add to Cart ── */}
-          <motion.button
+          <button
             onClick={handleAddToCart}
-            whileTap={{ scale: 0.96 }}
             disabled={showVariants && !selectedVariant && hasVariantData}
-            className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg ${
-              added
-                ? "bg-emerald-500 text-white shadow-emerald-500/25"
-                : "bg-primary hover:bg-accent text-black shadow-primary/25 hover:shadow-primary/40"
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#ef5a24] px-5 py-3.5 text-sm font-black uppercase tracking-[0.12em] text-white shadow-[0_7px_0_#9b3214] transition hover:translate-y-[2px] hover:bg-[#dc4818] hover:shadow-[0_4px_0_#9b3214] active:translate-y-[6px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {added ? (
-              <>
-                <Check className="w-4 h-4" />
-                Added!
-              </>
-            ) : (
-              <>
-                <ShoppingBag className="w-4 h-4" />
-                Add to Cart
-              </>
-            )}
-          </motion.button>
+            {added ? "Added" : "Order Now"}
+            <ShoppingBag className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </motion.div>
@@ -338,39 +274,33 @@ function ProductCard({
 }
 
 export default function RestaurantGrid({ products }: RestaurantGridProps) {
-  const displayProducts =
-    products && products.length > 0 ? products : FALLBACK_PRODUCTS;
+  const displayProducts = products && products.length > 0 ? products : FALLBACK_PRODUCTS;
 
   return (
-    <section className="py-16 md:py-24 px-4 sm:px-6 bg-background">
-      <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-14 gap-4"
-        >
-          <div>
-            <span className="section-tag mb-4 inline-flex">
-              <Sparkles className="w-3 h-3" />
-              Our Specialties
+    <section className="relative overflow-hidden bg-[#fff4e4] px-4 py-18 sm:px-6 md:py-24">
+      <div className="relative mx-auto max-w-7xl">
+        <div className="mb-11 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#a7471b]">
+              Signature dishes
             </span>
-            <h2 className="text-4xl md:text-5xl font-black text-white mt-4 tracking-tight">
-              Recommended{" "}
-              <em className="text-gradient not-italic">for You</em>
+            <h2 className="mt-3 font-playfair text-4xl font-black leading-tight text-[#2b160c] sm:text-5xl">
+              Real food, photographed like it matters.
             </h2>
+            <p className="mt-4 text-sm font-medium leading-7 text-[#6c4d39] sm:text-base">
+              Golden crusts, smoky edges, fresh toppings, and clear prices up front. Pick the plate that looks like tonight.
+            </p>
           </div>
           <Link
             href={ROUTES.MENU}
-            className="flex items-center gap-2 text-primary font-bold hover:text-accent transition-colors border-b border-primary/30 pb-0.5"
+            className="inline-flex w-fit items-center gap-2 rounded-full border border-[#ef5a24]/25 bg-white px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#c94618] shadow-sm transition hover:-translate-y-0.5 hover:border-[#ef5a24]/50"
           >
-            View Full Menu →
+            Explore Menu
+            <ArrowRight className="h-4 w-4" />
           </Link>
-        </motion.div>
+        </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {displayProducts.map((product, i) => (
             <ProductCard key={product._id} product={product} index={i} />
           ))}

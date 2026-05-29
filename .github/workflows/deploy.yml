@@ -8,18 +8,19 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SOCKET_URL: https://hpf-socket-server.onrender.com
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
-      # ── 1. Checkout ───────────────────────────────────────────────────────
       - uses: actions/checkout@v4
 
-      # ── 2. Node ───────────────────────────────────────────────────────────
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
           cache: npm
 
-      # ── 2.1 Verify Code Quality (QA Checks) ────────────────────────────────
       - name: Install dependencies
         run: npm ci
 
@@ -29,50 +30,22 @@ jobs:
       - name: Run Type Check
         run: npx tsc --noEmit
 
-      # ── 3. Vercel CLI ─────────────────────────────────────────────────────
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      # ── 4. Pull production env vars (best-effort) ─────────────────────────
-      # continue-on-error so a future token expiry doesn't block the build.
-      # The next step guarantees NEXT_PUBLIC_SOCKET_URL regardless.
       - name: Pull Vercel production environment variables
         continue-on-error: true
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      # ── 5. Guarantee NEXT_PUBLIC_SOCKET_URL ──────────────────────────────
-      - name: Ensure NEXT_PUBLIC_SOCKET_URL is set
+      - name: Ensure production socket URL
         run: |
-          SOCKET_URL="https://hpf-socket-server.onrender.com"
-          PULLED=""
-          if [ -f .env.production.local ]; then
-            PULLED=$(grep "^NEXT_PUBLIC_SOCKET_URL=" .env.production.local | cut -d= -f2- || true)
-          fi
-          if [ -n "$PULLED" ] && [[ "$PULLED" != *"localhost"* ]] && [[ "$PULLED" != *"127.0.0.1"* ]]; then
-            echo "✅ NEXT_PUBLIC_SOCKET_URL from Vercel pull: $PULLED"
-          else
-            touch .env.production.local
-            echo "NEXT_PUBLIC_SOCKET_URL=${SOCKET_URL}" >> .env.production.local
-            echo "✅ NEXT_PUBLIC_SOCKET_URL injected by workflow: ${SOCKET_URL}"
-          fi
+          touch .env.production.local
+          grep -v "^NEXT_PUBLIC_SOCKET_URL=" .env.production.local > .env.production.local.tmp || true
+          mv .env.production.local.tmp .env.production.local
+          echo "NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}" >> .env.production.local
 
-      # ── 6. Build (vercel build → outputs to .vercel/output/) ─────────────
-      # vercel build reads .env.production.local and inlines NEXT_PUBLIC_*
-      # vars before running next build. The output goes to .vercel/output/
-      # which is what vercel deploy --prebuilt expects.
       - name: Build
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          NEXT_PUBLIC_SOCKET_URL: https://hpf-socket-server.onrender.com
 
-      # ── 7. Deploy prebuilt artifacts ──────────────────────────────────────
       - name: Deploy
         run: vercel deploy --prebuilt --prod --archive=tgz --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
