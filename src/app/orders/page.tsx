@@ -102,8 +102,7 @@ export default function MyOrdersPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="rounded-3xl p-12 text-center"
-            className="rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]"
+            className="rounded-3xl p-12 text-center rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]"
           >
             <div className="w-24 h-24 bg-[#fff4e4] text-[#2b160c]/5 rounded-full flex items-center justify-center mx-auto mb-6">
               <Package className="w-10 h-10 text-[#8f6b52]/50" />
@@ -127,8 +126,7 @@ export default function MyOrdersPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="rounded-3xl p-6 md:p-8 transition-all duration-300 group relative overflow-hidden"
-                className="rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]"
+                className="rounded-3xl p-6 md:p-8 transition-all duration-300 group relative overflow-hidden rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]"
                 
                 
               >

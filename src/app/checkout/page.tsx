@@ -343,7 +343,7 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2 space-y-6">
 
             {/* Cart Items */}
-            <div className="rounded-3xl p-6" className="rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]">
+            <div className="rounded-3xl p-6 rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]">
 <h2 className="text-lg font-black text-[#2b160c] mb-6 flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-[#ef5a24]" /> Your Order ({items.length} items)
               </h2>
@@ -399,7 +399,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Delivery Location & Address (Manual Branch Selection) */}
-            <div className="rounded-3xl p-6" className="rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]">
+            <div className="rounded-3xl p-6 rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]">
 <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-black text-[#2b160c] flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-[#ef5a24]" /> Delivery Details
@@ -634,7 +634,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Payment Method */}
-            <div className="rounded-3xl p-6" className="rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]">
+            <div className="rounded-3xl p-6 rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]">
 <h2 className="text-lg font-black text-[#2b160c] mb-4 flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-[#ef5a24]" /> Payment Method
               </h2>
@@ -685,7 +685,7 @@ export default function CheckoutPage() {
 
           {/* ── Right column: Order Summary ──────────────────────────────── */}
           <div>
-            <div className="rounded-3xl p-6 sticky top-28" className="rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]">
+            <div className="rounded-3xl p-6 sticky top-28 rounded-[28px] border border-[#ead8c1] bg-[#fffaf2] shadow-[0_18px_46px_rgba(73,40,18,0.08)]">
               <h2 className="text-lg font-black text-[#2b160c] mb-6">Order Summary</h2>
 
               {/* Coupon */}
@@ -697,7 +697,7 @@ export default function CheckoutPage() {
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     placeholder="Coupon code"
-                    className="w-full pl-9 pr-4 py-3 rounded-xl text-sm focus:outline-none text-[#2b160c] uppercase font-bold tracking-widest placeholder:text-[#8f6b52]/60" className="bg-white border border-[#ead8c1] focus:border-[#ef5a24]/40"  
+                    className="w-full pl-9 pr-4 py-3 rounded-xl text-sm focus:outline-none text-[#2b160c] uppercase font-bold tracking-widest placeholder:text-[#8f6b52]/60 bg-white border border-[#ead8c1] focus:border-[#ef5a24]/40"  
                   />
                 </div>
                 <button
