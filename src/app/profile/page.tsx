@@ -14,7 +14,7 @@ import Link from "next/link";
 import { toast } from "@/components/ui/Toast";
 
 const inputCls =
-  "w-full px-4 py-3 bg-[#0d1117] border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 text-white placeholder:text-white/25 text-sm transition-all";
+  "w-full px-4 py-3 bg-white border border-[#ead8c1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ef5a24]/20 focus:border-[#ef5a24]/50 text-[#2b160c] placeholder:text-[#8f6b52] text-sm transition-all";
 
 export default function ProfilePage() {
   const { data: session, status, update: updateSession } = useSession();
@@ -104,10 +104,10 @@ export default function ProfilePage() {
 
   if (status === "loading" || loadingProfile) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#fff4e4]">
         <Navbar />
         <div className="flex items-center justify-center min-h-[70vh]">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <Loader2 className="w-8 h-8 text-[#ef5a24] animate-spin" />
         </div>
       </div>
     );
@@ -119,10 +119,10 @@ export default function ProfilePage() {
     .split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#fff4e4]">
       <Navbar />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-28">
-        <h1 className="text-2xl sm:text-3xl font-black text-white mb-8">My Profile</h1>
+        <h1 className="font-playfair text-3xl sm:text-4xl font-black text-[#2b160c] mb-8">My Profile</h1>
 
         <div className="space-y-5">
 
@@ -130,13 +130,12 @@ export default function ProfilePage() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl p-6"
-            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.08)" }}
+            className="rounded-2xl p-6 bg-[#fffaf2] border border-[#ead8c1] shadow-[0_18px_46px_rgba(73,40,18,0.08)]"
           >
             <div className="flex flex-col sm:flex-row sm:items-center gap-5">
               {/* Avatar */}
               <div className="shrink-0 mx-auto sm:mx-0">
-                <div className="w-20 h-20 rounded-full border-2 border-primary overflow-hidden flex items-center justify-center bg-primary/10 relative">
+                <div className="w-20 h-20 rounded-full border-2 border-[#ef5a24] overflow-hidden flex items-center justify-center bg-[#ef5a24]/10 relative">
                   {profile?.image || session.user.image ? (
                     <img
                       src={profile?.image || session.user.image}
@@ -144,7 +143,7 @@ export default function ProfilePage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-primary font-black text-2xl">{initials}</span>
+                    <span className="text-[#ef5a24] font-black text-2xl">{initials}</span>
                   )}
                 </div>
               </div>
@@ -154,7 +153,7 @@ export default function ProfilePage() {
                 {editing ? (
                   <div className="space-y-3">
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8f6b52]" />
                       <input
                         className={`${inputCls} pl-10`}
                         value={name}
@@ -163,7 +162,7 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8f6b52]" />
                       <input
                         className={`${inputCls} pl-10`}
                         value={phone}
@@ -176,14 +175,14 @@ export default function ProfilePage() {
                       <button
                         onClick={handleSaveProfile}
                         disabled={saving}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-primary text-black text-sm font-black rounded-xl hover:bg-primary/90 disabled:opacity-60 transition-colors"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-[#ef5a24] text-white shadow-md text-sm font-black rounded-xl hover:bg-[#ef5a24]/90 disabled:opacity-60 transition-colors"
                       >
                         {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                         Save
                       </button>
                       <button
                         onClick={() => { setEditing(false); setName(profile?.name || ""); setPhone(profile?.phone || ""); }}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 text-white/60 text-sm font-semibold rounded-xl hover:bg-white/10 transition-colors"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-[#fffaf2] border border-[#ead8c1] text-[#8f6b52] text-sm font-semibold rounded-xl hover:bg-[#ead8c1]/30 transition-colors"
                       >
                         <X className="w-3.5 h-3.5" /> Cancel
                       </button>
@@ -191,18 +190,18 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <>
-                    <h2 className="text-xl font-black text-white">{profile?.name || session.user.name}</h2>
-                    <p className="text-white/40 text-sm mt-0.5 flex items-center justify-center sm:justify-start gap-1.5">
+                    <h2 className="text-xl font-black text-[#2b160c]">{profile?.name || session.user.name}</h2>
+                    <p className="text-[#8f6b52] text-sm mt-0.5 flex items-center justify-center sm:justify-start gap-1.5">
                       <Mail className="w-3.5 h-3.5" /> {profile?.email || session.user.email}
                     </p>
                     {profile?.phone && (
-                      <p className="text-white/40 text-sm mt-0.5 flex items-center justify-center sm:justify-start gap-1.5">
+                      <p className="text-[#8f6b52] text-sm mt-0.5 flex items-center justify-center sm:justify-start gap-1.5">
                         <Phone className="w-3.5 h-3.5" /> {profile.phone}
                       </p>
                     )}
                     <button
                       onClick={() => setEditing(true)}
-                      className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 border border-primary/40 text-primary text-sm font-bold rounded-xl hover:bg-primary/10 transition-colors"
+                      className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 border border-[#ef5a24]/40 text-[#ef5a24] text-sm font-bold rounded-xl hover:bg-[#ef5a24]/10 transition-colors"
                     >
                       <Edit3 className="w-3.5 h-3.5" /> Edit Profile
                     </button>
@@ -217,18 +216,17 @@ export default function ProfilePage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="rounded-2xl overflow-hidden"
-            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.08)" }}
+            className="rounded-2xl overflow-hidden bg-[#fffaf2] border border-[#ead8c1] shadow-[0_18px_46px_rgba(73,40,18,0.08)]"
           >
             <Link
               href="/orders"
-              className="flex items-center justify-between px-5 py-4 hover:bg-white/3 transition-colors border-b border-white/6"
+              className="flex items-center justify-between px-5 py-4 hover:bg-black/5 transition-colors border-b border-[#ead8c1]"
             >
-              <div className="flex items-center gap-3 text-white/80">
-                <ShoppingBag className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-3 text-[#2b160c]/80">
+                <ShoppingBag className="w-4 h-4 text-[#ef5a24]" />
                 <span className="text-sm font-semibold">My Orders</span>
               </div>
-              <ChevronRight className="w-4 h-4 text-white/30" />
+              <ChevronRight className="w-4 h-4 text-[#8f6b52]" />
             </Link>
           </motion.div>
 
@@ -237,22 +235,21 @@ export default function ProfilePage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="rounded-2xl overflow-hidden"
-            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.08)" }}
+            className="rounded-2xl overflow-hidden bg-[#fffaf2] border border-[#ead8c1] shadow-[0_18px_46px_rgba(73,40,18,0.08)]"
           >
             <button
               onClick={() => setShowPwSection(s => !s)}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/3 transition-colors"
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-black/5 transition-colors"
             >
-              <div className="flex items-center gap-3 text-white/80">
-                <Lock className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-3 text-[#2b160c]/80">
+                <Lock className="w-4 h-4 text-[#ef5a24]" />
                 <span className="text-sm font-semibold">Change Password</span>
               </div>
-              <ChevronRight className={`w-4 h-4 text-white/30 transition-transform ${showPwSection ? "rotate-90" : ""}`} />
+              <ChevronRight className={`w-4 h-4 text-[#8f6b52] transition-transform ${showPwSection ? "rotate-90" : ""}`} />
             </button>
 
             {showPwSection && (
-              <div className="px-5 pb-5 space-y-3 border-t border-white/6 pt-4">
+              <div className="px-5 pb-5 space-y-3 border-t border-[#ead8c1] pt-4">
                 {(["current", "next", "confirm"] as const).map(field => {
                   const labels = { current: "Current Password", next: "New Password", confirm: "Confirm New Password" };
                   return (
@@ -269,7 +266,7 @@ export default function ProfilePage() {
                         type="button"
                         tabIndex={-1}
                         onClick={() => setShowPw(s => ({ ...s, [field]: !s[field] }))}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors p-1"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8f6b52] hover:text-[#8f6b52] transition-colors p-1"
                       >
                         {showPw[field] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -284,7 +281,7 @@ export default function ProfilePage() {
                 <button
                   onClick={handleChangePassword}
                   disabled={savingPw}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-primary/10 border border-primary/25 text-primary font-black text-sm rounded-xl hover:bg-primary/20 disabled:opacity-60 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-[#ef5a24]/10 border border-[#ef5a24]/25 text-[#ef5a24] font-black text-sm rounded-xl hover:bg-[#ef5a24]/20 disabled:opacity-60 transition-colors"
                 >
                   {savingPw ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
                   {savingPw ? "Updating…" : "Update Password"}
