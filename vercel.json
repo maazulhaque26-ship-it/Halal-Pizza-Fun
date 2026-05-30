@@ -1,7 +1,7 @@
 {
   "framework": "nextjs",
   "regions": ["bom1"],
-  "buildCommand": "npm run build",
+  "buildCommand": "next build --webpack",
   "installCommand": "npm ci",
   "headers": [
     {

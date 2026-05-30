@@ -1,3 +1,4 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 // ─── Build-time environment variable warning ────────────────────────────────
@@ -44,6 +45,19 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
       },
     ],
+  },
+
+  // ─── Webpack: explicit @ alias ─────────────────────────────────────────
+  // Next.js normally reads @/* from tsconfig.json paths, but vercel build
+  // re-runs npm ci in its own environment before calling next build, which
+  // can leave the tsconfig paths unresolved on Linux. Hardcode the alias so
+  // it is always set regardless of how tsconfig.json is loaded.
+  webpack(config) {
+    config.resolve.alias = {
+      ...(config.resolve.alias as Record<string, string>),
+      "@": path.resolve(__dirname, "src"),
+    };
+    return config;
   },
 
   // ─── HTTP Security Headers ──────────────────────────────────────────────
