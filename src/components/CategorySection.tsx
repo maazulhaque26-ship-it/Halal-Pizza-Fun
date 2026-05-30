@@ -49,7 +49,7 @@ const FALLBACK_CATEGORIES: Category[] = [
 ];
 
 function getCategoryImage(cat: Category): string | null {
-  if (cat.image && cat.image.trim() !== "") return cat.image;
+  if (cat.image && cat.image.trim() !== "") return cat.image.trim();
   return IMAGE_MAP[cat.name.toLowerCase()] || null;
 }
 

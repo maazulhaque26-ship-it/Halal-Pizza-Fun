@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, Loader2, X, Save } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, X, Save, Upload, ImageOff } from "lucide-react";
 import { toast } from "@/components/ui/Toast";
 import { API } from "@/config/constants";
 
@@ -25,6 +25,31 @@ export default function AdminCategoriesPage() {
   const [editing, setEditing] = useState<Category | null>(null);
   const [form, setForm] = useState<any>(empty);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "categories");
+      const res = await fetch(API.UPLOAD, { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.success) {
+        setForm((p: any) => ({ ...p, image: data.url }));
+      } else {
+        toast.error(data.message || "Upload failed");
+      }
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const fetchAll = async () => {
     try {
@@ -137,8 +162,58 @@ export default function AdminCategoriesPage() {
                 <input className={inputCls} value={form.name} onChange={e => setForm((p: any) => ({ ...p, name: e.target.value }))} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">Image URL</label>
-                <input className={inputCls} value={form.image || ""} onChange={e => setForm((p: any) => ({ ...p, image: e.target.value }))} />
+                <label className="block text-sm font-medium text-gray-300 mb-1.5">Image</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+                {form.image ? (
+                  <div className="relative rounded-xl overflow-hidden border border-white/12 bg-[#0d1117]">
+                    <img
+                      src={form.image}
+                      alt="Category preview"
+                      className="w-full h-36 object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 hover:opacity-100 transition-opacity bg-black/60">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-primary text-black rounded-lg text-xs font-bold"
+                      >
+                        {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        Replace
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setForm((p: any) => ({ ...p, image: "" }))}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-red-500/80 text-white rounded-lg text-xs font-bold"
+                      >
+                        <X className="w-3.5 h-3.5" /> Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="w-full flex flex-col items-center justify-center gap-2 h-36 border-2 border-dashed border-white/15 rounded-xl bg-[#0d1117] hover:border-primary/40 hover:bg-primary/5 transition-colors text-gray-500 hover:text-primary"
+                  >
+                    {uploading ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <ImageOff className="w-6 h-6" />
+                    )}
+                    <span className="text-xs font-semibold">
+                      {uploading ? "Uploading…" : "Click to upload image"}
+                    </span>
+                    <span className="text-[10px] text-gray-600">JPG, PNG, WebP, GIF · max 10 MB</span>
+                  </button>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Description</label>
