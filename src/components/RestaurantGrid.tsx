@@ -75,6 +75,12 @@ const FALLBACK_PRODUCTS: Product[] = [
   },
 ];
 
+function wordLimit(text: string, max: number): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= max) return text.trim();
+  return words.slice(0, max).join(" ") + "…";
+}
+
 const VARIANT_CATEGORY_SLUGS = ["pizza", "cheeza", "cheezas"];
 
 function isCategoryVariantEnabled(categoryId: Product["categoryId"]): boolean {
@@ -216,8 +222,8 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
             </span>
           </div>
 
-          <p className="mb-5 line-clamp-2 text-sm font-medium leading-6 text-[#6d5342]">
-            {product.description}
+          <p className="mb-5 text-sm font-medium leading-6 text-[#6d5342]">
+            {wordLimit(product.description, prominent ? 35 : 25)}
           </p>
 
           {showVariants && (

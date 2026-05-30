@@ -30,6 +30,12 @@ interface Product {
   categoryId?: { _id: string; name: string; slug?: string } | string;
 }
 
+function wordLimit(text: string, max: number): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= max) return text.trim();
+  return words.slice(0, max).join(" ") + "…";
+}
+
 // ── Premium Product Card ─────────────────────────────────────────────────────
 const COLOR_THEMES = [
   {
@@ -216,8 +222,8 @@ function MenuProductCard({ product, index }: { product: Product; index: number }
             </span>
           </div>
 
-          <p className={`text-xs ${theme.desc} line-clamp-2 mb-4 leading-relaxed flex-1`}>
-            {product.description}
+          <p className={`text-xs ${theme.desc} mb-4 leading-relaxed flex-1`}>
+            {wordLimit(product.description, 30)}
           </p>
 
           {/* Rating + Time */}
