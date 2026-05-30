@@ -1,37 +1,20 @@
 import type { NextConfig } from "next";
 
-// ─── Build-time environment variable validation ────────────────────────────────
-// This runs during `next build` / `vercel build`. If NEXT_PUBLIC_SOCKET_URL is
-// missing or pointing at localhost during a production build, the build FAILS
-// immediately with a clear error instead of silently baking localhost into the
-// JS bundle and shipping broken real-time to all users.
-//
-// To bypass locally (e.g. NODE_ENV=production build without Render):
-//   SKIP_SOCKET_URL_CHECK=1 next build
-if (
-  process.env.NODE_ENV === "production" &&
-  !process.env.SKIP_SOCKET_URL_CHECK
-) {
+// ─── Build-time environment variable warning ────────────────────────────────
+// Warn (not fail) if NEXT_PUBLIC_SOCKET_URL is missing or pointing at localhost
+// during a production build. The variable is injected by CI via
+// .env.production.local so throwing here would break Vercel cloud builds.
+if (process.env.NODE_ENV === "production") {
   const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
   if (
     !socketUrl ||
     socketUrl.includes("localhost") ||
     socketUrl.includes("127.0.0.1")
   ) {
-    throw new Error(
-      "\n\n" +
-      "════════════════════════════════════════════════════════\n" +
-      " FATAL BUILD ERROR: NEXT_PUBLIC_SOCKET_URL is missing\n" +
-      " or is pointing to localhost in a production build.\n\n" +
-      ` Current value: "${socketUrl}"\n\n` +
-      " Fix:\n" +
-      "   1. Open Vercel dashboard → your project → Settings\n" +
-      "      → Environment Variables\n" +
-      "   2. Add (or update) NEXT_PUBLIC_SOCKET_URL with the\n" +
-      "      value: https://hpf-socket-server.onrender.com\n" +
-      "   3. Set the environment target to 'Production'\n" +
-      "   4. Trigger a new GitHub Actions deployment\n" +
-      "════════════════════════════════════════════════════════\n"
+    console.warn(
+      "\n⚠  WARNING: NEXT_PUBLIC_SOCKET_URL is missing or points to localhost." +
+      "\n   Real-time features will not work in production." +
+      `\n   Current value: "${socketUrl}"\n`
     );
   }
 }

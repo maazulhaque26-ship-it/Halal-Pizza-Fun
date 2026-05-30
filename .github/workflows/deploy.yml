@@ -37,6 +37,11 @@ jobs:
         continue-on-error: true
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
+      - name: Set NEXT_PUBLIC_SOCKET_URL in Vercel project
+        continue-on-error: true
+        run: |
+          echo "${{ env.NEXT_PUBLIC_SOCKET_URL }}" | vercel env add NEXT_PUBLIC_SOCKET_URL production --token=${{ secrets.VERCEL_TOKEN }} --force || true
+
       - name: Ensure production socket URL
         run: |
           touch .env.production.local
