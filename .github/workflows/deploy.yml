@@ -149,20 +149,12 @@ jobs:
 
           echo "✅ NEXT_PUBLIC_SOCKET_URL set to: ${NEXT_PUBLIC_SOCKET_URL}"
 
-      # ── Step 10: Build via Vercel CLI ─────────────────────────────────────
-      # Produces .vercel/output — a framework-agnostic build artifact.
-      # Build failures are caught here in CI, not silently on Vercel's servers.
-      - name: Build project (vercel build --prod)
-        run: |
-          vercel build --prod \
-            --token=${{ secrets.VERCEL_TOKEN }}
-
-      # ── Step 11: Deploy pre-built output ──────────────────────────────────
-      # Uploads .vercel/output to Vercel. No remote build — instant.
-      - name: Deploy to Vercel (--prebuilt)
+      # ── Step 10: Deploy from Source to Vercel ─────────────────────────────
+      # Source-based deployment avoids the local Vercel CLI lambda-tracing and Turbopack bugs.
+      - name: Deploy to Vercel
         id: deploy
         run: |
-          DEPLOY_URL=$(vercel deploy --prebuilt --prod \
+          DEPLOY_URL=$(vercel --prod \
             --token=${{ secrets.VERCEL_TOKEN }})
 
           echo "DEPLOY_URL=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
