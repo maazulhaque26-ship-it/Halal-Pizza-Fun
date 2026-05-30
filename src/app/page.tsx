@@ -27,23 +27,23 @@ export default async function Home() {
 
   try {
     await connectDB();
-    const [settingsData, categoriesData, featuredProductsData, branchesData] = await Promise.all([
+    const [settingsData, categoriesData, branchesData] = await Promise.all([
       getSettings(),
       Category.find({ isActive: true }).sort({ order: 1 }).lean(),
-      Product.find({ isAvailable: true, isSignatureDish: true })
-        .limit(8)
-        .populate("categoryId", "name slug")
-        .lean()
-        .then(async (sig) => {
-          if (sig.length > 0) return sig;
-          // No signature dishes marked yet — fall back to all available products
-          return Product.find({ isAvailable: true })
-            .limit(8)
-            .populate("categoryId", "name slug")
-            .lean();
-        }),
       import("@/lib/db/models/Branch").then(m => m.Branch.find({ isActive: true }).lean()),
     ]);
+
+    let featuredProductsData = await Product.find({ isAvailable: true, isSignatureDish: true })
+      .limit(8)
+      .populate("categoryId", "name slug")
+      .lean();
+
+    if (!featuredProductsData || featuredProductsData.length === 0) {
+      featuredProductsData = await Product.find({ isAvailable: true })
+        .limit(8)
+        .populate("categoryId", "name slug")
+        .lean();
+    }
 
     settings = settingsData;
     // Fix: Convert MongoDB objects (like ObjectId) to plain JSON before passing to Client Components
