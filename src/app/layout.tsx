@@ -7,7 +7,10 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import { getSettings } from "@/lib/services/SettingsService";
 import { ASSETS } from "@/config/constants";
 import { CsrfProvider } from "@/components/CsrfProvider";
+import { organizationSchema, websiteSchema, localBusinessSchema } from "@/lib/seo/schema";
+import { SEO_CONFIG } from "@/lib/seo/config";
 import "./globals.css";
+import { JsonLd } from "@/components/seo/JsonLD";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -31,57 +34,115 @@ export const viewport: Viewport = {
 
 /**
  * Dynamic metadata generated from the database Settings document.
- * No hardcoded SEO values — all admin-controlled.
+ * Falls back to HPF-specific SEO defaults when DB is unavailable.
  */
 export async function generateMetadata(): Promise<Metadata> {
   let settings;
   try {
     settings = await getSettings();
   } catch {
-    // If DB is unavailable, fall back gracefully
     settings = null;
   }
 
-  const siteName = settings?.siteName || "HPF";
-  const siteDescription =
-    settings?.siteDescription || "Premium Food Delivery Platform";
-  const metaTitle = settings?.seo?.metaTitle || `${siteName} | Discover the Best Food Around You`;
-  const metaDescription = settings?.seo?.metaDescription || siteDescription;
-  const ogImage = settings?.seo?.ogImage || ASSETS.FALLBACK_FOOD_IMAGE;
-  const seoShareImage = settings?.seo?.seoShareImage || ogImage;
+  const siteName    = settings?.siteName    || SEO_CONFIG.siteName;
+  const siteDesc    = settings?.siteDescription || SEO_CONFIG.defaults.description;
+  const metaTitle   = settings?.seo?.metaTitle
+    || `${siteName} | Best Halal Pizza Delivery in Delhi – Shaheen Bagh, Zakir Nagar`;
+  const metaDesc    = settings?.seo?.metaDescription || SEO_CONFIG.defaults.description;
+  const ogImage     = settings?.seo?.ogImage        || SEO_CONFIG.defaults.ogImage;
+  const seoShareImg = settings?.seo?.seoShareImage  || ogImage;
+  const baseUrl     = process.env.NEXT_PUBLIC_APP_URL || SEO_CONFIG.siteUrl;
 
   return {
+    // ── Titles ──────────────────────────────────────────────────────────
     title: {
-      default: metaTitle,
+      default:  metaTitle,
       template: `%s | ${siteName}`,
     },
-    description: metaDescription,
-    keywords: ["food delivery", "restaurants", "food", "order online"],
-    authors: [{ name: siteName }],
+    description: metaDesc,
+
+    // ── Keywords (merged: brand + local + long-tail sample) ─────────────
+    keywords: [
+      ...SEO_CONFIG.primaryKeywords,
+      ...SEO_CONFIG.secondaryKeywords,
+      "halal pizza fun",
+      "pizza fun delhi",
+      "hpf food delivery",
+      siteDesc,
+    ],
+
+    // ── Authorship & robots ──────────────────────────────────────────────
+    authors:  [{ name: siteName, url: baseUrl }],
+    robots: {
+      index:             true,
+      follow:            true,
+      googleBot: {
+        index:              true,
+        follow:             true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet":       -1,
+      },
+    },
+
+    // ── Canonical & alternates ──────────────────────────────────────────
+    metadataBase: new URL(baseUrl),
+    alternates: {
+      canonical: "/",
+      languages: { "en-IN": "/" },
+    },
+
+    // ── Open Graph ───────────────────────────────────────────────────────
     openGraph: {
-      type: "website",
+      type:      "website",
       siteName,
-      title: metaTitle,
-      description: metaDescription,
-      images: [{ url: ogImage }],
+      title:     metaTitle,
+      description: metaDesc,
+      url:       baseUrl,
+      locale:    SEO_CONFIG.locale,
+      images: [
+        {
+          url:    ogImage,
+          width:  1200,
+          height: 630,
+          alt:    `${siteName} – Halal Pizza Delhi`,
+        },
+      ],
     },
+
+    // ── Twitter / X ──────────────────────────────────────────────────────
     twitter: {
-      card: "summary_large_image",
-      title: metaTitle,
-      description: metaDescription,
-      images: [seoShareImage],
+      card:        "summary_large_image",
+      site:        SEO_CONFIG.brandHandle,
+      title:       metaTitle,
+      description: metaDesc,
+      images:      [seoShareImg],
     },
+
+    // ── Icons & manifest ─────────────────────────────────────────────────
     icons: {
-      icon: settings?.faviconUrl || ASSETS.FAVICON,
+      icon:     settings?.faviconUrl || ASSETS.FAVICON,
       shortcut: settings?.faviconUrl || ASSETS.FAVICON,
+      apple:    "/icons/icon-192x192.png",
     },
     manifest: "/manifest.json",
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+
+    // ── PWA / Apple ──────────────────────────────────────────────────────
     appleWebApp: {
-      capable: true,
-      statusBarStyle: "black-translucent",
-      title: metaTitle,
+      capable:          true,
+      statusBarStyle:   "black-translucent",
+      title:            metaTitle,
     },
+
+    // ── Verification (fill in after connecting to search consoles) ───────
+    verification: {
+      google: "",   // ← paste your Google Search Console verification token
+      // yandex: "",
+      // bing:   "",
+    },
+
+    // ── Category ────────────────────────────────────────────────────────
+    category: "food",
   };
 }
 
@@ -91,11 +152,24 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`scroll-smooth ${plusJakarta.variable} ${playfair.variable}`} data-scroll-behavior="smooth">
-      {/* suppressHydrationWarning: browser extensions (Grammarly, password managers)
-          inject attributes/text into the DOM after SSR, causing React error #418.
-          This tells React to ignore those mismatches on the body element only. */}
-      <body suppressHydrationWarning className="font-sans antialiased" style={{ fontFamily: "var(--font-jakarta), 'Inter', system-ui, sans-serif" }}>
+    <html
+      lang="en"
+      className={`scroll-smooth ${plusJakarta.variable} ${playfair.variable}`}
+      data-scroll-behavior="smooth"
+    >
+      <body
+        suppressHydrationWarning
+        className="font-sans antialiased"
+        style={{ fontFamily: "var(--font-jakarta), 'Inter', system-ui, sans-serif" }}
+      >
+        {/* ── Global JSON-LD Schemas ─────────────────────────────────────
+            Injected once for every page. Google reads these from any page
+            in the site, so putting them in the root layout is the most
+            efficient approach. */}
+        <JsonLd data={organizationSchema()} />
+        <JsonLd data={websiteSchema()} />
+        <JsonLd data={localBusinessSchema()} />
+
         <CsrfProvider>
           <AuthProvider>
             {children}

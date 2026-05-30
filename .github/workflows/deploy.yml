@@ -1,3 +1,9 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# HPF Food Delivery — Production Deployment
+# Strategy: pre-built deploy (pull → build → deploy)
+# Vercel CLI auth is validated BEFORE any build work begins.
+# ─────────────────────────────────────────────────────────────────────────────
+
 name: Deploy to Vercel
 
 on:
@@ -5,49 +11,189 @@ on:
     branches: [master]
   workflow_dispatch:
 
+# Cancel any in-progress run on the same branch before starting a new one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ─── Job 1: Preflight ─────────────────────────────────────────────────────────
+# Fail fast if secrets are missing — before any CI time is spent.
 jobs:
-  deploy:
+  preflight:
+    name: Preflight — Secret Validation
     runs-on: ubuntu-latest
+    steps:
+      - name: Verify all required secrets are present
+        run: |
+          MISSING=()
+          [[ -z "${{ secrets.VERCEL_TOKEN }}"      ]] && MISSING+=("VERCEL_TOKEN")
+          [[ -z "${{ secrets.VERCEL_ORG_ID }}"     ]] && MISSING+=("VERCEL_ORG_ID")
+          [[ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]] && MISSING+=("VERCEL_PROJECT_ID")
+
+          if [[ ${#MISSING[@]} -gt 0 ]]; then
+            echo "❌ Missing required GitHub secrets: ${MISSING[*]}"
+            echo ""
+            echo "Fix: GitHub → Repository → Settings → Secrets and variables → Actions"
+            echo "Add each missing secret with its correct value from Vercel."
+            exit 1
+          fi
+
+          echo "✅ All required secrets (VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID) are present."
+
+# ─── Job 2: Build & Deploy ────────────────────────────────────────────────────
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    needs: preflight
+
     env:
-      NEXT_PUBLIC_SOCKET_URL: https://hpf-socket-server.onrender.com
+      # Vercel CLI reads these automatically — no need to pass on every command.
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      # Hard-coded production socket URL — overrides any local dev value.
+      NEXT_PUBLIC_SOCKET_URL: https://hpf-socket-server.onrender.com
 
     steps:
-      - uses: actions/checkout@v4
+      # ── Step 1: Checkout ──────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      # ── Step 2: Node.js ───────────────────────────────────────────────────
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
 
+      # ── Step 3: Dependencies ──────────────────────────────────────────────
       - name: Install dependencies
         run: npm ci
 
+      # ── Step 4: Lint ──────────────────────────────────────────────────────
       - name: Run ESLint
         run: npm run lint
 
-      - name: Run Type Check
+      # ── Step 5: Type check ────────────────────────────────────────────────
+      - name: Run TypeScript type check
         run: npx tsc --noEmit
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+      # ── Step 6: Install Vercel CLI (pinned major, not @latest) ───────────
+      # Pinning prevents a breaking CLI change from silently killing deploys.
+      # Update this version intentionally after testing, not automatically.
+      - name: Install Vercel CLI (pinned)
+        run: npm install --global vercel@54
 
-      - name: Pull Vercel environment variables
-        continue-on-error: true
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Set NEXT_PUBLIC_SOCKET_URL in Vercel project
-        continue-on-error: true
+      # ── Step 7: Validate token BEFORE doing any real work ─────────────────
+      # Hits /v2/user with the token. A 200 means auth is valid.
+      # A 401/403 means the token is wrong, expired, or revoked.
+      # This step catches the root cause EARLY with a clear error message.
+      - name: Validate VERCEL_TOKEN via API
         run: |
-          echo "${{ env.NEXT_PUBLIC_SOCKET_URL }}" | vercel env add NEXT_PUBLIC_SOCKET_URL production --token=${{ secrets.VERCEL_TOKEN }} --force || true
+          echo "🔍 Vercel CLI version:"
+          vercel --version
+          echo ""
+          echo "🔍 Validating VERCEL_TOKEN against Vercel REST API..."
 
-      - name: Ensure production socket URL
+          HTTP_STATUS=$(curl --silent --output /dev/null --write-out "%{http_code}" \
+            --header "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            "https://api.vercel.com/v2/user")
+
+          echo "   API response status: HTTP $HTTP_STATUS"
+
+          if [[ "$HTTP_STATUS" == "200" ]]; then
+            echo "✅ VERCEL_TOKEN is valid."
+          elif [[ "$HTTP_STATUS" == "401" ]]; then
+            echo "❌ VERCEL_TOKEN is INVALID or EXPIRED (HTTP 401 Unauthorized)."
+            echo ""
+            echo "▶ Fix:"
+            echo "  1. Go to https://vercel.com/account/tokens"
+            echo "  2. Delete the old token (if it exists)."
+            echo "  3. Create a new token → copy the value immediately."
+            echo "  4. Go to GitHub → this repo → Settings → Secrets and variables → Actions."
+            echo "  5. Delete VERCEL_TOKEN and recreate it with the new value."
+            echo "  6. Do NOT add leading/trailing whitespace."
+            exit 1
+          elif [[ "$HTTP_STATUS" == "403" ]]; then
+            echo "❌ VERCEL_TOKEN is valid but has INSUFFICIENT PERMISSIONS (HTTP 403)."
+            echo "▶ Fix: Create a new token with full scope at https://vercel.com/account/tokens"
+            exit 1
+          else
+            echo "❌ Unexpected API response: HTTP $HTTP_STATUS"
+            echo "▶ Check Vercel status at https://www.vercel-status.com"
+            exit 1
+          fi
+
+      # ── Step 8: Pull Vercel project metadata & env vars ───────────────────
+      # Creates .vercel/project.json and .env.production.local
+      # NOT continue-on-error — a failure here means auth or project config is wrong.
+      - name: Pull Vercel environment (production)
+        run: |
+          vercel pull --yes \
+            --environment=production \
+            --token=${{ secrets.VERCEL_TOKEN }}
+
+      # ── Step 9: Inject NEXT_PUBLIC_SOCKET_URL ─────────────────────────────
+      # The Vercel-pulled .env.production.local may have a stale value.
+      # Force-inject the correct production socket URL before building.
+      - name: Inject NEXT_PUBLIC_SOCKET_URL into build env
         run: |
           touch .env.production.local
-          grep -v "^NEXT_PUBLIC_SOCKET_URL=" .env.production.local > .env.production.local.tmp || true
-          mv .env.production.local.tmp .env.production.local
-          echo "NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}" >> .env.production.local
 
-      - name: Deploy to Vercel (source deploy — Vercel cloud builds)
-        run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+          # Remove any existing entry, then append the authoritative value.
+          grep -v "^NEXT_PUBLIC_SOCKET_URL=" .env.production.local \
+            > .env.production.local.tmp || true
+          mv .env.production.local.tmp .env.production.local
+
+          echo "NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}" \
+            >> .env.production.local
+
+          echo "✅ NEXT_PUBLIC_SOCKET_URL set to: ${NEXT_PUBLIC_SOCKET_URL}"
+
+      # ── Step 10: Build via Vercel CLI ─────────────────────────────────────
+      # Produces .vercel/output — a framework-agnostic build artifact.
+      # Build failures are caught here in CI, not silently on Vercel's servers.
+      - name: Build project (vercel build --prod)
+        run: |
+          vercel build --prod \
+            --token=${{ secrets.VERCEL_TOKEN }}
+
+      # ── Step 11: Deploy pre-built output ──────────────────────────────────
+      # Uploads .vercel/output to Vercel. No remote build — instant.
+      - name: Deploy to Vercel (--prebuilt)
+        id: deploy
+        run: |
+          DEPLOY_URL=$(vercel deploy --prebuilt --prod \
+            --token=${{ secrets.VERCEL_TOKEN }})
+
+          echo "DEPLOY_URL=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+          echo ""
+          echo "✅ Production deployment successful."
+          echo "   URL: $DEPLOY_URL"
+
+      # ── Step 12: Write GitHub Actions job summary ─────────────────────────
+      - name: Write deployment summary
+        if: success()
+        run: |
+          echo "## ✅ Deployment Successful" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **URL** | ${{ steps.deploy.outputs.DEPLOY_URL }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Actor** | ${{ github.actor }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Run** | [\`#${{ github.run_number }}\`](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> "$GITHUB_STEP_SUMMARY"
+
+      # ── Step 13: On failure — print diagnostic hints ──────────────────────
+      - name: Print failure diagnostics
+        if: failure()
+        run: |
+          echo "## ❌ Deployment Failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Diagnostic checklist:**" >> "$GITHUB_STEP_SUMMARY"
+          echo "- [ ] VERCEL_TOKEN exists in GitHub secrets and is not expired" >> "$GITHUB_STEP_SUMMARY"
+          echo "- [ ] VERCEL_ORG_ID matches your Vercel team/personal account ID" >> "$GITHUB_STEP_SUMMARY"
+          echo "- [ ] VERCEL_PROJECT_ID matches the project in your Vercel dashboard" >> "$GITHUB_STEP_SUMMARY"
+          echo "- [ ] No whitespace/newline accidentally included in secret values" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "See the step logs above for the exact failure point." >> "$GITHUB_STEP_SUMMARY"

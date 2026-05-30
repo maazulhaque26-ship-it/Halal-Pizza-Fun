@@ -1,13 +1,15 @@
 {
-  "name": "HPF Food Delivery",
-  "short_name": "HPF",
-  "description": "Premium Multi-Branch Food Delivery Platform",
+  "name": "Halal Pizza Fun",
+  "short_name": "Pizza Fun",
+  "description": "Order fresh halal pizza online. Delivery to Shaheen Bagh, Zakir Nagar, Tikona Park & South-East Delhi in 30 minutes. 100% halal certified.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "theme_color": "#F4C430",
   "orientation": "portrait-primary",
   "scope": "/",
+  "lang": "en-IN",
+  "dir": "ltr",
   "categories": ["food", "lifestyle", "shopping"],
   "prefer_related_applications": false,
   "icons": [
@@ -32,25 +34,40 @@
   ],
   "shortcuts": [
     {
-      "name": "Explore Menu",
-      "short_name": "Menu",
-      "description": "View premium gourmet dishes",
+      "name": "Order Pizza Now",
+      "short_name": "Order",
+      "description": "Browse our halal pizza menu and order online",
       "url": "/menu",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Today's Offers",
+      "short_name": "Offers",
+      "description": "See today's pizza deals and combo discounts",
+      "url": "/offers",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Track My Order",
+      "short_name": "Track",
+      "description": "Track your pizza delivery in real time",
+      "url": "/track-order",
       "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "My Orders",
       "short_name": "Orders",
-      "description": "Track live orders",
+      "description": "View your order history",
       "url": "/orders",
       "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
-    },
+    }
+  ],
+  "screenshots": [
     {
-      "name": "Latest Offers",
-      "short_name": "Offers",
-      "description": "View exclusive discounts",
-      "url": "/offers",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "label": "Halal Pizza Fun — Fresh Halal Pizza Delivery"
     }
   ]
 }

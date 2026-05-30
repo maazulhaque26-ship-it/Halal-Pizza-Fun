@@ -1,0 +1,210 @@
+/**
+ * Centralized SEO configuration for Halal Pizza Fun.
+ * All SEO constants, keywords, and business metadata live here.
+ * Import from this file wherever you need SEO data — never hardcode elsewhere.
+ */
+
+export const SEO_CONFIG = {
+  // ─── Core Brand ────────────────────────────────────────────────────────
+  siteName:    "Halal Pizza Fun",
+  siteUrl:     "https://pizzafun.co.in",
+  brandHandle: "@halalpizzafun",
+  locale:      "en_IN",
+
+  // ─── Business Details (used in LocalBusiness schema) ───────────────────
+  business: {
+    name:        "Halal Pizza Fun",
+    legalName:   "Halal Pizza Fun",
+    description: "Delhi's favourite halal pizza restaurant serving fresh, hand-stretched pizzas delivered fast to Shaheen Bagh, Zakir Nagar, Tikona Park, and the wider South-East Delhi area.",
+    email:       "info@pizzafun.co.in",
+    telephone:   "+91-XXXXXXXXXX",   // ← replace with your actual number
+    url:         "https://pizzafun.co.in",
+    logo:        "https://pizzafun.co.in/logo.png",
+    image:       "https://pizzafun.co.in/logo.png",
+    priceRange:  "₹₹",
+    address: {
+      streetAddress:   "Shaheen Bagh Market",
+      addressLocality: "Shaheen Bagh",
+      addressRegion:   "New Delhi",
+      postalCode:      "110025",
+      addressCountry:  "IN",
+    },
+    geo: {
+      latitude:  28.5356,
+      longitude: 77.2942,
+    },
+    openingHours: [
+      "Mo-Su 10:00-23:30",   // update if hours differ
+    ],
+    servesCuisine: ["Halal", "Pizza", "Italian", "Fast Food", "Chicken"],
+    hasMenu:       "https://pizzafun.co.in/menu",
+    acceptsReservations: false,
+    sameAs: [
+      // Add your social profiles below:
+      // "https://www.instagram.com/halalpizzafun",
+      // "https://www.facebook.com/halalpizzafun",
+      // "https://g.page/halalpizzafun",
+    ],
+  },
+
+  // ─── Default SEO (fallbacks if DB settings are empty) ──────────────────
+  defaults: {
+    title:       "Halal Pizza Fun | Best Halal Pizza Delivery in Delhi",
+    description: "Order fresh halal pizza online from Halal Pizza Fun. Fast delivery to Shaheen Bagh, Zakir Nagar, Tikona Park & all of South-East Delhi. 100% halal certified. Open 10 AM – 11:30 PM.",
+    ogImage:     "https://pizzafun.co.in/logo.png",
+  },
+
+  // ─── Primary Keywords ──────────────────────────────────────────────────
+  primaryKeywords: [
+    "pizza near shaheen bagh",
+    "pizza near zakir nagar",
+    "pizza near tikona park",
+    "halal pizza delhi",
+    "pizza delivery delhi",
+    "best pizza shaheen bagh",
+    "best pizza zakir nagar",
+    "best pizza tikona park",
+    "halal pizza fun",
+    "pizza fun delhi",
+  ],
+
+  // ─── Secondary Keywords ────────────────────────────────────────────────
+  secondaryKeywords: [
+    "best pizza near me",
+    "fast food delhi",
+    "pizza restaurant delhi",
+    "chicken pizza delhi",
+    "cheese pizza delhi",
+    "pizza home delivery delhi",
+    "halal food delivery delhi",
+    "online pizza order delhi",
+    "fresh pizza delivery delhi",
+    "pizza okhla",
+  ],
+
+  // ─── 100 Long-tail Keywords ────────────────────────────────────────────
+  longtailKeywords: [
+    // Delivery — location-specific
+    "pizza delivery near shaheen bagh",
+    "pizza delivery near zakir nagar",
+    "pizza delivery near tikona park",
+    "online pizza order shaheen bagh",
+    "online pizza order zakir nagar",
+    "pizza home delivery okhla delhi",
+    "pizza delivery jamia nagar",
+    "pizza near jamia millia islamia",
+    "pizza near okhla phase 1",
+    "pizza near okhla phase 2",
+    "pizza near sarita vihar delhi",
+    "pizza near abul fazal enclave",
+    "pizza near ghaffar manzil",
+    "pizza near new friends colony",
+    "pizza near jasola delhi",
+    "pizza near noor nagar delhi",
+    "pizza near batla house delhi",
+    "pizza near joga bai",
+    "pizza near haji colony",
+    "pizza near shahi idgah delhi",
+    // Product-specific
+    "cheese burst pizza delhi",
+    "chicken tikka pizza delhi",
+    "bbq chicken pizza delhi halal",
+    "margherita pizza halal delhi",
+    "chicken pizza delivery south delhi",
+    "paneer pizza delivery delhi",
+    "loaded fries near shaheen bagh",
+    "garlic bread delivery delhi",
+    "chicken wings delivery delhi",
+    "stuffed crust pizza delhi",
+    "thin crust pizza delivery delhi",
+    "thick crust pizza delivery delhi",
+    "spicy pizza near shaheen bagh",
+    "extra cheese pizza delivery delhi",
+    "double chicken pizza delhi",
+    // Brand-specific
+    "halal pizza fun shaheen bagh",
+    "halal pizza fun zakir nagar",
+    "halal pizza fun tikona park",
+    "hpf food delivery delhi",
+    "halal pizza fun menu",
+    "halal pizza fun contact number",
+    "halal pizza fun order online",
+    "halal pizza fun deals",
+    "halal pizza fun review",
+    "pizza fun delhi order",
+    // Comparative / intent
+    "best halal pizza in delhi 2025",
+    "top pizza restaurants south delhi",
+    "cheap pizza delivery delhi",
+    "affordable pizza near me delhi",
+    "delicious pizza near shaheen bagh",
+    "fast food delivery shaheen bagh",
+    "fast food delivery zakir nagar",
+    "fast food near tikona park",
+    "best reviewed pizza delhi",
+    "5 star pizza delivery delhi",
+    "most popular pizza in shaheen bagh",
+    "trusted halal pizza restaurant delhi",
+    // Action-intent
+    "order pizza online shaheen bagh",
+    "order pizza now delhi",
+    "pizza near me open now delhi",
+    "pizza open near shaheen bagh evening",
+    "where to order pizza in shaheen bagh",
+    "best pizza for dinner delivery delhi",
+    "pizza that delivers to zakir nagar",
+    "pizza with fast delivery south delhi",
+    "30 minute pizza delivery delhi",
+    "same day pizza delivery delhi",
+    // Halal-specific
+    "halal certified pizza delhi",
+    "100 percent halal pizza delhi",
+    "muslim friendly restaurant delhi",
+    "halal restaurant near shaheen bagh",
+    "zabiha halal pizza delhi",
+    "halal chicken pizza south delhi",
+    "halal fast food near me delhi",
+    "halal pizza with free delivery delhi",
+    "no pork pizza delivery delhi",
+    "fully halal fast food delhi",
+    // Occasion / group
+    "pizza party delivery delhi",
+    "birthday pizza delivery delhi",
+    "office pizza order south delhi",
+    "bulk pizza order delhi",
+    "family pizza meal deal delhi",
+    "kids menu pizza delivery delhi",
+    "large group pizza order delhi",
+    "weekend pizza delivery shaheen bagh",
+    "late night pizza delivery delhi",
+    "midnight pizza delivery south delhi",
+    // Deal / offer
+    "pizza deals near shaheen bagh",
+    "pizza discount today delhi",
+    "pizza offers delhi",
+    "combo deals pizza delhi",
+    "pizza meal combo south delhi",
+    "buy one get one pizza delhi",
+    "pizza coupon code delhi",
+    "cheapest pizza delivery okhla",
+    "pizza bundle deal delhi",
+    "value pizza meal delhi",
+    // Quality-focused
+    "fresh ingredients pizza delhi",
+    "no preservatives pizza delhi",
+    "freshly made pizza delivery delhi",
+    "wood fired style pizza delhi",
+    "crispy base pizza delivery delhi",
+    "stone baked pizza south delhi",
+    "handmade pizza near shaheen bagh",
+    "gourmet halal pizza delhi",
+    "premium halal pizza shaheen bagh",
+    "restaurant quality pizza delivery delhi",
+    // Discovery
+    "is halal pizza fun good",
+    "halal pizza fun website delhi",
+    "how to order from halal pizza fun",
+    "halal pizza fun delivery time",
+    "halal pizza fun payment options",
+  ],
+} as const;

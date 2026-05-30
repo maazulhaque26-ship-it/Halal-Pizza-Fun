@@ -1,10 +1,14 @@
+# Halal Pizza Fun — pizzafun.co.in
+# Robots.txt — controls crawler access
+
 User-agent: *
 Allow: /
+
+# ── Block private / admin routes ──────────────────────────────────────
 Disallow: /admin
 Disallow: /admin/
 Disallow: /branch
 Disallow: /branch/
-Disallow: /api
 Disallow: /api/
 Disallow: /auth/login
 Disallow: /auth/register
@@ -12,4 +16,11 @@ Disallow: /checkout
 Disallow: /orders
 Disallow: /profile
 
+# ── Allow important crawlable assets ──────────────────────────────────
+Allow: /api/og/     # Open Graph image generation endpoint if added
+
+# ── Crawl delay (optional — reduce server load) ───────────────────────
+# Crawl-delay: 1
+
+# ── Sitemap ───────────────────────────────────────────────────────────
 Sitemap: https://pizzafun.co.in/sitemap.xml
