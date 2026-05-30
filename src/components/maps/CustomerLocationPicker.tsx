@@ -1,5 +1,7 @@
 "use client";
 
+import "leaflet/dist/leaflet.css";
+
 import { Fragment, useMemo, useState, useEffect, useRef } from "react";
 import { Circle, MapContainer, Marker, Popup, TileLayer, useMapEvents } from "react-leaflet";
 import { Crosshair, LocateFixed, MapPin, Search, Loader } from "lucide-react";

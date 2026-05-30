@@ -1,5 +1,7 @@
 "use client";
 
+import "leaflet/dist/leaflet.css";
+
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { MapPin, Phone } from "lucide-react";
 import { branchIcon } from "./leafletIcons";
