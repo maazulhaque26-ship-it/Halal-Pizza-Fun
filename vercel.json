@@ -2,7 +2,7 @@
   "framework": "nextjs",
   "regions": ["bom1"],
   "buildCommand": "next build --webpack",
-  "installCommand": "npm ci",
+  "installCommand": "npm ci --include=dev",
   "headers": [
     {
       "source": "/api/(.*)",
