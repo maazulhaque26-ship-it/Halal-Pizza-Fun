@@ -144,8 +144,8 @@ export default function Footer({
         )}
 
         {showInstallGuide && (
-          <div className="fixed inset-0 z-999 flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm sm:items-center" onClick={() => setShowInstallGuide(false)}>
-            <div className="w-full max-w-sm rounded-[28px] bg-[#fff8ee] p-6 text-[#2b160c] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-[999] flex items-end justify-center bg-black/70 px-4 pt-4 pb-24 backdrop-blur-sm sm:items-center sm:p-4" onClick={() => setShowInstallGuide(false)}>
+            <div className="w-full max-w-sm rounded-[28px] bg-[#fff8ee] p-6 text-[#2b160c] shadow-2xl max-h-[80dvh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="mb-5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#2b160c] text-[#ffb44a]">

@@ -53,11 +53,6 @@ function getCategoryImage(cat: Category): string | null {
   return IMAGE_MAP[cat.name.toLowerCase()] || null;
 }
 
-function wordLimit(text: string, max: number): string {
-  const words = text.trim().split(/\s+/);
-  if (words.length <= max) return text.trim();
-  return words.slice(0, max).join(" ") + "…";
-}
 
 function CategoryCard({ cat, index }: { cat: Category; index: number }) {
   const imageUrl = getCategoryImage(cat);
@@ -98,11 +93,6 @@ function CategoryCard({ cat, index }: { cat: Category; index: number }) {
             Menu shelf
           </span>
           <h3 className="font-playfair text-2xl font-black leading-none text-white">{cat.name}</h3>
-          {cat.description && (
-            <p className="mt-2 text-sm font-medium leading-6 text-white/80">
-              {wordLimit(cat.description, featured ? 40 : 25)}
-            </p>
-          )}
         </div>
       </Link>
     </motion.div>
