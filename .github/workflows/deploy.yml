@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_SOCKET_URL: https://hpf-socket-server.onrender.com
-      SKIP_SOCKET_URL_CHECK: 1
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
@@ -34,7 +33,7 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Pull Vercel production environment variables
+      - name: Pull Vercel environment variables
         continue-on-error: true
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
@@ -45,8 +44,5 @@ jobs:
           mv .env.production.local.tmp .env.production.local
           echo "NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}" >> .env.production.local
 
-      - name: Build
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy
-        run: vercel deploy --prebuilt --prod --archive=tgz --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy to Vercel (source deploy — Vercel cloud builds)
+        run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
