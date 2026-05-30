@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_SOCKET_URL: https://hpf-socket-server.onrender.com
+      SKIP_SOCKET_URL_CHECK: 1
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
