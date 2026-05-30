@@ -53,6 +53,12 @@ function getCategoryImage(cat: Category): string | null {
   return IMAGE_MAP[cat.name.toLowerCase()] || null;
 }
 
+function wordLimit(text: string, max: number): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= max) return text.trim();
+  return words.slice(0, max).join(" ") + "…";
+}
+
 function CategoryCard({ cat, index }: { cat: Category; index: number }) {
   const imageUrl = getCategoryImage(cat);
   const [imgFailed, setImgFailed] = useState(false);
@@ -69,7 +75,7 @@ function CategoryCard({ cat, index }: { cat: Category; index: number }) {
       <Link
         href={`${ROUTES.MENU}?category=${cat._id}`}
         className={`group relative block h-full overflow-hidden rounded-[22px] border border-[#2a160d]/10 bg-[#fffaf2] shadow-[0_14px_38px_rgba(63,31,14,0.08)] transition duration-300 hover:-translate-y-1 hover:border-[#ef5a24]/35 hover:shadow-[0_24px_54px_rgba(63,31,14,0.14)] ${
-          featured ? "min-h-[220px]" : "min-h-[168px]"
+          featured ? "min-h-[240px]" : "min-h-[200px]"
         }`}
       >
         <div className="absolute inset-0">
@@ -86,14 +92,16 @@ function CategoryCard({ cat, index }: { cat: Category; index: number }) {
             </div>
           )}
         </div>
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_18%,rgba(25,13,8,0.82)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_18%,rgba(25,13,8,0.85)_100%)]" />
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <span className="mb-2 inline-flex rounded-full bg-[#fff8ee]/92 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#ef5a24]">
             Menu shelf
           </span>
           <h3 className="font-playfair text-2xl font-black leading-none text-white">{cat.name}</h3>
-          {cat.description && featured && (
-            <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-white/74">{cat.description}</p>
+          {cat.description && (
+            <p className="mt-2 text-sm font-medium leading-6 text-white/80">
+              {wordLimit(cat.description, featured ? 40 : 25)}
+            </p>
           )}
         </div>
       </Link>
