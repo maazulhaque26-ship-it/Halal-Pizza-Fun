@@ -11,6 +11,7 @@ interface Category { _id: string; name: string; }
 interface Product {
   _id: string; name: string; description: string; price: number;
   image: string; isVegetarian: boolean; foodType?: "veg" | "nonveg" | "other"; isAvailable: boolean;
+  isSignatureDish?: boolean;
   preparationTimeMin: number; categoryId: { _id: string; name: string } | string;
   hasVariants?: boolean;
 }
@@ -25,7 +26,7 @@ interface VariantRow {
 
 const empty = {
   name: "", description: "", price: 0, image: "", isVegetarian: false, foodType: "other",
-  isAvailable: true, preparationTimeMin: 15, categoryId: "", hasVariants: false,
+  isAvailable: true, isSignatureDish: false, preparationTimeMin: 15, categoryId: "", hasVariants: false,
 };
 
 const inputCls = "w-full px-4 py-2.5 bg-[#0d1117] border border-white/12 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/60 text-gray-100 placeholder:text-gray-600 text-sm transition-all";
@@ -79,6 +80,7 @@ export default function AdminProductsPage() {
       ...p,
       categoryId: p.categoryId && typeof p.categoryId === "object" ? (p.categoryId as any)._id : p.categoryId || "",
       hasVariants: p.hasVariants ?? false,
+      isSignatureDish: p.isSignatureDish ?? false,
       foodType: p.foodType || (p.isVegetarian ? "veg" : "nonveg"),
     });
     setEditing(p);
@@ -270,6 +272,11 @@ export default function AdminProductsPage() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 <div className="absolute top-3 left-3 flex gap-2">
+                  {p.isSignatureDish && (
+                    <span className="flex items-center gap-1 bg-amber-400 text-black text-[10px] font-black px-2 py-1 rounded-full">
+                      ★ SIGNATURE
+                    </span>
+                  )}
                   {(() => {
                     const foodType = p.foodType || (p.isVegetarian ? "veg" : "nonveg");
                     if (foodType === "veg") {
@@ -396,6 +403,22 @@ export default function AdminProductsPage() {
                   <option value="nonveg">Non-Veg</option>
                   <option value="other">Other</option>
                 </select>
+              </div>
+
+              {/* Mark as Signature Dish */}
+              <div className="rounded-xl border border-amber-400/30 bg-amber-400/5 p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.isSignatureDish || false}
+                    onChange={e => setForm((p: any) => ({ ...p, isSignatureDish: e.target.checked }))}
+                    className="w-4 h-4 rounded accent-amber-400"
+                  />
+                  <div>
+                    <span className="text-sm font-bold text-amber-400">★ Mark as Signature Dish</span>
+                    <p className="text-xs text-gray-500 mt-0.5">Signature dishes are featured on the homepage &amp; shown with a gold badge.</p>
+                  </div>
+                </label>
               </div>
 
               <div>

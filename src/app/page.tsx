@@ -30,10 +30,18 @@ export default async function Home() {
     const [settingsData, categoriesData, featuredProductsData, branchesData] = await Promise.all([
       getSettings(),
       Category.find({ isActive: true }).sort({ order: 1 }).lean(),
-      Product.find({ isAvailable: true })
+      Product.find({ isAvailable: true, isSignatureDish: true })
         .limit(8)
-        .populate("categoryId", "name")
-        .lean(),
+        .populate("categoryId", "name slug")
+        .lean()
+        .then(async (sig) => {
+          if (sig.length > 0) return sig;
+          // No signature dishes marked yet — fall back to all available products
+          return Product.find({ isAvailable: true })
+            .limit(8)
+            .populate("categoryId", "name slug")
+            .lean();
+        }),
       import("@/lib/db/models/Branch").then(m => m.Branch.find({ isActive: true }).lean()),
     ]);
 

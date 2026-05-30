@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, Star, Clock, Leaf, ChevronDown, Plus, Check, ArrowRight } from "lucide-react";
+import { ShoppingBag, Star, Clock, Leaf, ChevronDown, Plus, Check, ArrowRight, Award } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { useBranchStore } from "@/store/useBranchStore";
 import { ASSETS, ROUTES } from "@/config/constants";
@@ -25,6 +25,7 @@ interface Product {
   image: string;
   isVegetarian?: boolean;
   foodType?: "veg" | "nonveg" | "other";
+  isSignatureDish?: boolean;
   preparationTimeMin?: number;
   categoryId?: { _id: string; name: string; slug?: string } | string;
   hasVariants?: boolean;
@@ -159,6 +160,11 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
           />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_35%,rgba(0,0,0,0.55)_100%)]" />
           <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+            {product.isSignatureDish && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f4c430] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#2b160c] shadow-sm">
+                <Award className="h-3 w-3" /> Signature
+              </span>
+            )}
             {(() => {
               const foodType = product.foodType || (product.isVegetarian ? "veg" : "nonveg");
               if (foodType === "veg") {
@@ -285,10 +291,10 @@ export default function RestaurantGrid({ products }: RestaurantGridProps) {
               Signature dishes
             </span>
             <h2 className="mt-3 font-playfair text-4xl font-black leading-tight text-[#2b160c] sm:text-5xl">
-              Real food, photographed like it matters.
+              Our Most Loved Bites.
             </h2>
             <p className="mt-4 text-sm font-medium leading-7 text-[#6c4d39] sm:text-base">
-              Golden crusts, smoky edges, fresh toppings, and clear prices up front. Pick the plate that looks like tonight.
+              Hand-picked favourites — golden crusts, smoky edges, bold toppings. Order the one that calls your name.
             </p>
           </div>
           <Link

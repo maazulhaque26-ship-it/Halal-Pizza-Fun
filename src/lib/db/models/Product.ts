@@ -11,6 +11,7 @@ export interface IProduct extends Document {
   foodType?: "veg" | "nonveg" | "other";
   isAvailable: boolean;
   isDeleted: boolean;
+  isSignatureDish: boolean; // Marked by admin — shown in the Signature Dishes section
   preparationTimeMin: number;
   sortOrder: number;
   hasVariants: boolean; // When true, variants drive pricing; base price is a fallback
@@ -33,6 +34,7 @@ const ProductSchema = new Schema<IProduct>(
     foodType: { type: String, enum: ["veg", "nonveg", "other"], default: "other" },
     isAvailable: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false, index: true },
+    isSignatureDish: { type: Boolean, default: false, index: true },
     preparationTimeMin: { type: Number, default: 15 },
     sortOrder: { type: Number, default: 0 },
     hasVariants: { type: Boolean, default: false },
